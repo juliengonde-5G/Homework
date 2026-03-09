@@ -181,6 +181,11 @@ function getMotivation() {
       { title: '🎨 Bienvenue, créateur !', text: 'Chaque exercice est une aventure qui t\'attend. Imagine et conquiers !' },
       { title: '🐉 L\'aventure commence', text: 'Tel un héros de Warhammer, affronte les défis avec courage !' },
       { title: '✨ Ton monde t\'attend', text: 'Dessine ton chemin vers la réussite, exercice après exercice.' }
+    ],
+    entrepreneur: [
+      { title: '💼 Prêt à progresser ?', text: 'Chaque apprentissage est un investissement. Développez vos compétences !' },
+      { title: '🚀 En route vers l\'excellence', text: 'Le savoir, c\'est votre meilleur outil de dirigeant.' },
+      { title: '🎯 Objectif compétences', text: 'Textile, anglais, IA... chaque module vous rend plus fort.' }
     ]
   };
 
@@ -231,7 +236,8 @@ function getTimerEndMessage() {
   const msgs = {
     promoteur: ['Temps écoulé champion ! Tu as super bien bossé ! 🏆', 'Fin du match ! Quelle performance ! ⚽💪'],
     rebelle: ['Hey, les 45 min sont passées ! T\'as bien géré 😎', 'Temps fini ! T\'as assuré, prends une pause ✌️'],
-    imagineur: ['La quête du jour est terminée, héros ! 🐉✨', 'Ton aventure a été épique aujourd\'hui ! 🌟']
+    imagineur: ['La quête du jour est terminée, héros ! 🐉✨', 'Ton aventure a été épique aujourd\'hui ! 🌟'],
+    entrepreneur: ['Session terminée ! Bel investissement en compétences 💼', 'Bien joué, chaque minute compte pour progresser 🚀']
   };
   const pool = msgs[currentUser?.profile_type] || msgs.promoteur;
   return pool[Math.floor(Math.random() * pool.length)];
@@ -293,6 +299,11 @@ function getFloatingBotGreeting() {
       'Salut ' + currentUser.name + ' ! Pret pour une nouvelle aventure ? ✨',
       'Hey createur ! Je suis ton compagnon de quete 🐉',
       'Bienvenue aventurier ! Besoin d\'aide dans ta quete ? 🗡️'
+    ],
+    entrepreneur: [
+      'Bonjour ' + currentUser.name + ' ! Pret a developper vos competences ? 💼',
+      'Salut ! Un module d\'anglais ou d\'IA aujourd\'hui ? 🚀',
+      'Hello ! Votre assistant formation est la 📚'
     ]
   };
   const pool = greetings[currentUser.profile_type] || greetings.promoteur;
@@ -646,6 +657,10 @@ function getCorrectMessage() {
       '⚔️ Le sort a parfaitement fonctionné, mage !', '🏰 Tu viens de conquérir un nouveau territoire !',
       '🦅 Ton savoir s\'envole vers les étoiles !', '🌈 Réponse arc-en-ciel de génie !',
       '👑 Le roi du savoir, c\'est toi !', '🎭 Quelle maîtrise ! Tu es un artiste !'
+    ],
+    entrepreneur: [
+      '💼 Excellent ! Compétence acquise !', '🚀 Parfait, vous progressez vite !', '📊 Bonne réponse, bravo !',
+      '🎯 En plein dans le mille !', '💡 Exactement ! Votre expertise grandit !', '✅ Validé ! Continuez comme ça !'
     ]
   };
   const pool = messages[currentUser.profile_type] || messages.promoteur;
@@ -671,6 +686,11 @@ function getIncorrectMessage() {
       'Même les plus grands sorciers ratent des sorts au début ! 🧙‍♂️',
       'C\'est un nouveau chapitre de ton aventure. La suite sera meilleure ! 📖',
       'Le dragon était coriace ! Mais tu deviens plus fort à chaque combat ! 🐉'
+    ],
+    entrepreneur: [
+      'Pas de souci, c\'est en se trompant qu\'on apprend 💡', 'Chaque erreur est une leçon business 📈',
+      'On rectifie et on avance ! 🚀', 'Pas grave, l\'important c\'est la progression 💪',
+      'Les meilleurs dirigeants apprennent de leurs erreurs ! 💼', 'On note et on continue ! 📝'
     ]
   };
   const pool = messages[currentUser.profile_type] || messages.promoteur;
@@ -886,6 +906,11 @@ function showWarmthQuestion() {
       { q: 'Tu te sens plutot createur ou explorateur aujourd\'hui ? ✨', r1: 'Créateur', r2: 'Explorateur' },
       { q: 'Imagine que chaque exercice est un sort a lancer... Tu es pret, sorcier ? 🗡️', r1: 'Oui !', r2: 'Presque...' },
       { q: 'Si tu pouvais inventer une matiere a l\'ecole, ce serait quoi ?', r1: 'Dis-moi !', r2: 'Hmm...' }
+    ],
+    entrepreneur: [
+      { q: 'Comment avance votre formation aujourd\'hui ? 💼', r1: 'Bien !', r2: 'Doucement' },
+      { q: 'Un module d\'anglais textile ou d\'IA ? 🚀', r1: 'Anglais', r2: 'IA' },
+      { q: 'Prêt pour le prochain module ? 📚', r1: 'Oui !', r2: 'Pause' }
     ]
   };
 
@@ -950,7 +975,8 @@ function showDailyMoodModal() {
   const titles = {
     promoteur: 'Avant de commencer, coach... 💪',
     rebelle: 'Hey, dis-moi un truc... 😎',
-    imagineur: 'Aventurier, raconte-moi... ✨'
+    imagineur: 'Aventurier, raconte-moi... ✨',
+    entrepreneur: 'Avant votre session... 💼'
   };
   document.getElementById('daily-mood-title').textContent =
     titles[currentUser.profile_type] || 'Comment tu vas aujourd\'hui ?';
@@ -1045,7 +1071,8 @@ async function saveDailyMood() {
   const messages = {
     promoteur: 'Top ! Je prépare un programme sur mesure pour toi, champion !',
     rebelle: 'Cool ! Je m\'adapte a toi aujourd\'hui, pas de stress !',
-    imagineur: 'Genial ! L\'aventure est personnalisee rien que pour toi !'
+    imagineur: 'Genial ! L\'aventure est personnalisee rien que pour toi !',
+    entrepreneur: 'Parfait ! Votre session est prête, on y va !'
   };
   document.getElementById('mood-complete-text').textContent =
     messages[currentUser.profile_type] || 'Top ! Je vais personnaliser ta session !';
@@ -1574,6 +1601,12 @@ function loadDecouverteSuggestions() {
       { text: '🐉 Les dragons dans l\'histoire', topic: 'D\'où viennent les légendes de dragons ?' },
       { text: '✈️ Comment faire un avion en papier ?', topic: 'Comment fabriquer le meilleur avion en papier ?' },
       { text: '🏰 Comment vivait-on au Moyen Âge ?', topic: 'Comment vivaient les gens au Moyen Âge ?' }
+    ],
+    entrepreneur: [
+      { text: '♻️ L\'avenir du recyclage textile', topic: 'Quelles sont les innovations dans le recyclage textile ?' },
+      { text: '🤖 L\'IA en entreprise', topic: 'Comment l\'IA transforme les entreprises en 2026 ?' },
+      { text: '🌍 L\'économie circulaire', topic: 'Comment fonctionne l\'économie circulaire dans le textile ?' },
+      { text: '📊 Management et leadership', topic: 'Quelles sont les meilleures pratiques de management moderne ?' }
     ]
   };
 

@@ -8,7 +8,7 @@ function seedLearningPaths(db) {
     db.prepare(`
       INSERT INTO users (name, avatar, age, classe, profile_type, theme, is_dyslexic, interests, daily_limit_minutes)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run('Julien', '👔', 40, 'Pro', 'promoteur', 'default', 0,
+    `).run('Julien', '👔', 40, 'Pro', 'entrepreneur', 'default', 0,
       JSON.stringify(['textile', 'recyclage', 'IA', 'management', 'solidarité textile', 'frip and co']), 120);
     parentUser = db.prepare("SELECT id FROM users WHERE name = 'Julien'").get();
   }

@@ -13,7 +13,8 @@ function getSystemPrompt(user, dailyMood) {
   const profileNotes = {
     promoteur: `Profil PCM Promoteur: ${user.name} aime les défis, la compétition et l'action. Propose-lui des challenges, utilise des métaphores sportives (football). Il aime se sentir fort et capable. Motive-le avec des objectifs clairs et mesurables.`,
     rebelle: `Profil PCM Rebelle: ${user.name} a besoin de liberté et de choix. Ne lui impose jamais rien. Propose toujours des options. Utilise l'humour. Valide ses émotions. S'il résiste, change d'approche plutôt que d'insister. Il a besoin de sentir qu'il a le contrôle.`,
-    imagineur: `Profil PCM Imagineur: ${user.name} est un artiste et un créateur. Il adore Warhammer et l'imaginaire. Utilise des histoires, des métaphores créatives, des univers fantastiques pour expliquer les concepts. Laisse-le s'exprimer à sa manière. Encourage sa créativité.`
+    imagineur: `Profil PCM Imagineur: ${user.name} est un artiste et un créateur. Il adore Warhammer et l'imaginaire. Utilise des histoires, des métaphores créatives, des univers fantastiques pour expliquer les concepts. Laisse-le s'exprimer à sa manière. Encourage sa créativité.`,
+    entrepreneur: `Profil Entrepreneur: ${user.name} est dirigeant d'entreprises dans le textile solidaire et le recyclage (Solidarité Textile, Frip and Co). Utilise un ton professionnel mais accessible. Ses centres d'intérêt : textile, économie circulaire, IA appliquée au business, management d'équipes. Propose des conseils concrets et actionnables. Valorise son expérience terrain et sa vision sociale.`
   };
 
   // Contexte du jour basé sur le questionnaire quotidien
@@ -124,7 +125,8 @@ router.post('/decouverte', async (req, res) => {
   const profileNotes = {
     promoteur: `Utilise des métaphores sportives, des défis et de l'action.`,
     rebelle: `Sois cool et décontracté. Utilise l'humour. Laisse-le libre.`,
-    imagineur: `Utilise des histoires, de l'imaginaire, des aventures épiques.`
+    imagineur: `Utilise des histoires, de l'imaginaire, des aventures épiques.`,
+    entrepreneur: `Utilise un ton pro et concret. Relie les sujets au business, au textile et à l'innovation.`
   };
 
   const systemPrompt = `Tu es un guide de découverte passionné pour ${user.name}, ${user.age} ans.
