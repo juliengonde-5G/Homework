@@ -21,6 +21,8 @@ function initDatabase() {
       is_dyslexic INTEGER DEFAULT 0,
       interests TEXT DEFAULT '[]',
       daily_limit_minutes INTEGER DEFAULT 45,
+      birthday TEXT,
+      role TEXT DEFAULT 'child',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -188,20 +190,50 @@ function initDatabase() {
     );
   `);
 
+  // Migration: ajouter les colonnes birthday et role si manquantes
+  const columns = db.pragma('table_info(users)').map(c => c.name);
+  if (!columns.includes('birthday')) {
+    db.exec("ALTER TABLE users ADD COLUMN birthday TEXT");
+  }
+  if (!columns.includes('role')) {
+    db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'child'");
+  }
+
+  // Ajouter les profils parents si absents
+  const parentCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'parent'").get();
+  if (parentCount.count === 0) {
+    const existingPro = db.prepare("SELECT COUNT(*) as count FROM users WHERE classe = 'Pro'").get();
+    if (existingPro.count === 0) {
+      db.prepare(`INSERT INTO users (name, avatar, age, classe, profile_type, theme, is_dyslexic, interests, daily_limit_minutes, birthday, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+        'Ophélie', '👩', 40, 'Pro', 'promoteur', 'ophelie', 0,
+        JSON.stringify(['train', 'développement personnel', 'compétences']), 999, null, 'parent');
+      db.prepare(`INSERT INTO users (name, avatar, age, classe, profile_type, theme, is_dyslexic, interests, daily_limit_minutes, birthday, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+        'Julien', '👨', 40, 'Pro', 'analyseur', 'entrepreneur', 0,
+        JSON.stringify(['textile', 'recyclage', 'IA', 'management']), 999, null, 'parent');
+    } else {
+      // Mettre à jour les profils Pro existants
+      db.exec("UPDATE users SET role = 'parent' WHERE classe = 'Pro'");
+    }
+  }
+
   // Seed users si vide
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
   if (userCount.count === 0) {
-    const insertUser = db.prepare(`
-      INSERT INTO users (name, avatar, age, classe, profile_type, theme, is_dyslexic, interests, daily_limit_minutes)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    const insertUserFull = db.prepare(`
+      INSERT INTO users (name, avatar, age, classe, profile_type, theme, is_dyslexic, interests, daily_limit_minutes, birthday, role)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    insertUser.run('Ilan', '⚽', 14, '4ème', 'promoteur', 'football', 0,
-      JSON.stringify(['football', 'géopolitique', 'compétition']), 45);
-    insertUser.run('Sacha', '🎭', 11, '6ème', 'rebelle', 'creative', 1,
-      JSON.stringify(['liberté', 'choix', 'expression']), 45);
-    insertUser.run('Adan', '🎨', 11, '6ème', 'imagineur', 'warhammer', 1,
-      JSON.stringify(['warhammer', 'art', 'imagination', 'création']), 45);
+    insertUserFull.run('Ilan', '⚽', 14, '4ème', 'promoteur', 'football', 0,
+      JSON.stringify(['football', 'géopolitique', 'compétition']), 45, null, 'child');
+    insertUserFull.run('Sacha', '🎭', 11, '6ème', 'rebelle', 'creative', 1,
+      JSON.stringify(['liberté', 'choix', 'expression']), 45, null, 'child');
+    insertUserFull.run('Adan', '🎨', 11, '6ème', 'imagineur', 'warhammer', 1,
+      JSON.stringify(['warhammer', 'art', 'imagination', 'création']), 45, null, 'child');
+    insertUserFull.run('Ophélie', '👩', 40, 'Pro', 'promoteur', 'ophelie', 0,
+      JSON.stringify(['train', 'développement personnel', 'compétences']), 999, null, 'parent');
+    insertUserFull.run('Julien', '👨', 40, 'Pro', 'analyseur', 'entrepreneur', 0,
+      JSON.stringify(['textile', 'recyclage', 'IA', 'management']), 999, null, 'parent');
 
     // Stats initiales pour chaque enfant et matière
     const insertStats = db.prepare(`

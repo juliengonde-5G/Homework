@@ -1,13 +1,19 @@
 const express = require('express');
 const router = express.Router();
 
-function requireParent(req, res, next) {
-  if (!req.session.isParent) return res.status(403).json({ error: 'Accès requis' });
-  next();
+function requireParentOrParentUser(req, res, next) {
+  if (req.session.isParent) return next();
+  // Autoriser aussi les utilisateurs avec role=parent
+  if (req.session.userId) {
+    const db = req.app.locals.db;
+    const user = db.prepare("SELECT role FROM users WHERE id = ?").get(req.session.userId);
+    if (user && user.role === 'parent') return next();
+  }
+  return res.status(403).json({ error: 'Accès requis' });
 }
 
 // GET /api/learning/paths - Liste des parcours
-router.get('/paths', requireParent, (req, res) => {
+router.get('/paths', requireParentOrParentUser, (req, res) => {
   const db = req.app.locals.db;
 
   const paths = db.prepare('SELECT * FROM learning_paths ORDER BY id').all();
@@ -31,7 +37,7 @@ router.get('/paths', requireParent, (req, res) => {
 });
 
 // GET /api/learning/path/:slug - Détail d'un parcours avec ses leçons
-router.get('/path/:slug', requireParent, (req, res) => {
+router.get('/path/:slug', requireParentOrParentUser, (req, res) => {
   const db = req.app.locals.db;
   const { slug } = req.params;
 
@@ -59,7 +65,7 @@ router.get('/path/:slug', requireParent, (req, res) => {
 });
 
 // POST /api/learning/lesson/:id/progress - Mettre à jour la progression
-router.post('/lesson/:id/progress', requireParent, (req, res) => {
+router.post('/lesson/:id/progress', requireParentOrParentUser, (req, res) => {
   const db = req.app.locals.db;
   const lessonId = req.params.id;
   const { status, quiz_score, notes } = req.body;

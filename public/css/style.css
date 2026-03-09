@@ -2284,6 +2284,196 @@ body {
   line-height: 1.4;
 }
 
+/* ==================
+   FAMILY LOGIN - Parents row
+   ================== */
+.family-separator {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+  margin: 0.5rem 0 1.5rem;
+  position: relative;
+}
+
+.family-separator span {
+  background: transparent;
+  color: rgba(255,255,255,0.8);
+  padding: 0 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  position: relative;
+}
+
+.family-separator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255,255,255,0.3);
+}
+
+.parents-grid {
+  max-width: 400px !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+
+.parent-card {
+  background: rgba(255,255,255,0.9) !important;
+  border: 2px solid rgba(255,255,255,0.5) !important;
+}
+
+.profile-role {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin-top: 0.2rem;
+  display: block;
+}
+
+/* ==================
+   BIRTHDAY ADMIN
+   ================== */
+.birthday-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.birthday-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow);
+  gap: 1rem;
+}
+
+.birthday-info {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.birthday-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.birthday-input {
+  padding: 0.5rem;
+  border: 2px solid #E0E0E0;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 0.9rem;
+}
+
+.birthday-input:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.birthday-status {
+  font-size: 1.2rem;
+  min-width: 1.5rem;
+}
+
+.birthday-countdown-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  background: white;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+  box-shadow: var(--shadow);
+}
+
+.birthday-countdown-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #F0F0F0;
+  color: var(--text-light);
+}
+
+.birthday-countdown-badge.birthday-soon {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.birthday-countdown-badge.birthday-today {
+  background: #E8F5E9;
+  color: #2E7D32;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.birthday-countdown-item.birthday-soon {
+  border-left: 4px solid #FF9800;
+}
+
+.birthday-countdown-item.birthday-today {
+  border-left: 4px solid #4CAF50;
+  background: #F1F8E9;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Birthday banner on login screen */
+.birthday-banner {
+  max-width: 600px;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.birthday-alert {
+  padding: 0.8rem 1.2rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  text-align: center;
+  animation: slideDown 0.5s ease-out;
+}
+
+.birthday-today-alert {
+  background: rgba(255,255,255,0.95);
+  color: #E65100;
+  font-size: 1.1rem;
+  animation: pulse 2s ease-in-out infinite, slideDown 0.5s ease-out;
+}
+
+.birthday-soon-alert {
+  background: rgba(255,255,255,0.8);
+  color: #5D4037;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================
+   RESPONSIVE BIRTHDAY
+   ================== */
+@media (max-width: 768px) {
+  .birthday-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .parents-grid {
+    max-width: 300px !important;
+    grid-template-columns: 1fr !important;
+  }
+}
+
 .hidden {
   display: none !important;
 }

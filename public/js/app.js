@@ -26,18 +26,293 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadProfiles() {
   try {
-    const res = await fetch('/api/auth/users');
-    const users = await res.json();
+    const res = await fetch('/api/auth/family');
+    const { children, parents } = await res.json();
+
+    // Ligne 1 : les enfants
     const grid = document.getElementById('profiles-grid');
-    grid.innerHTML = users.map(u => `
+    grid.innerHTML = children.map(u => `
       <div class="profile-card animate-in" onclick="login(${u.id})" style="animation-delay: ${u.id * 0.1}s">
         <span class="profile-avatar">${u.avatar}</span>
         <span class="profile-name">${u.name}</span>
         <span class="profile-classe">${u.classe}</span>
       </div>
     `).join('');
+
+    // Ligne 2 : les parents
+    const parentsGrid = document.getElementById('parents-grid');
+    if (parentsGrid && parents.length > 0) {
+      parentsGrid.innerHTML = parents.map(u => `
+        <div class="profile-card parent-card animate-in" onclick="loginParentProfile(${u.id}, '${u.name}')" style="animation-delay: ${(u.id) * 0.1}s">
+          <span class="profile-avatar">${u.avatar}</span>
+          <span class="profile-name">${u.name}</span>
+          <span class="profile-role">${u.name === 'Ophélie' ? 'Maman' : 'Papa'}</span>
+        </div>
+      `).join('');
+    }
+
+    // Charger les alertes anniversaires
+    loadBirthdayBanner();
   } catch (e) {
     console.error('Erreur chargement profils:', e);
+    // Fallback sur l'ancienne API
+    try {
+      const res = await fetch('/api/auth/users');
+      const users = await res.json();
+      const grid = document.getElementById('profiles-grid');
+      grid.innerHTML = users.map(u => `
+        <div class="profile-card animate-in" onclick="login(${u.id})" style="animation-delay: ${u.id * 0.1}s">
+          <span class="profile-avatar">${u.avatar}</span>
+          <span class="profile-name">${u.name}</span>
+          <span class="profile-classe">${u.classe}</span>
+        </div>
+      `).join('');
+    } catch (e2) {
+      console.error('Erreur fallback:', e2);
+    }
+  }
+}
+
+async function loadBirthdayBanner() {
+  try {
+    const res = await fetch('/api/parent/birthdays');
+    if (!res.ok) return;
+    const birthdays = await res.json();
+    const upcoming = birthdays.filter(b => b.daysUntil <= 7);
+
+    const banner = document.getElementById('birthday-banner');
+    if (!banner || upcoming.length === 0) {
+      if (banner) banner.classList.add('hidden');
+      return;
+    }
+
+    banner.classList.remove('hidden');
+    banner.innerHTML = upcoming.map(b => {
+      if (b.daysUntil === 0) {
+        return `<div class="birthday-alert birthday-today-alert">🎂🎉 C'est l'anniversaire de <strong>${b.name}</strong> aujourd'hui ! Joyeux anniversaire ${b.avatar} ! 🎉🎂</div>`;
+      } else {
+        return `<div class="birthday-alert birthday-soon-alert">🎂 L'anniversaire de <strong>${b.name}</strong> ${b.avatar} est dans <strong>${b.daysUntil} jour${b.daysUntil > 1 ? 's' : ''}</strong> !</div>`;
+      }
+    }).join('');
+  } catch (e) {
+    // Pas d'accès parent, pas de bannière
+  }
+}
+
+// ==================
+// PROFILS PARENTS (Ophélie & Julien)
+// ==================
+async function loginParentProfile(userId, name) {
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId })
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+
+    currentUser = data.user;
+    remainingMinutes = 999;
+    totalDailyMinutes = 999;
+
+    document.body.className = '';
+    if (currentUser.theme) document.body.classList.add('theme-' + currentUser.theme);
+
+    if (name === 'Ophélie') {
+      // Ophélie : accès direct au chat libre
+      showScreen('main-screen');
+      setupParentChatScreen();
+    } else if (name === 'Julien') {
+      // Julien : accès aux parcours de compétences
+      showScreen('main-screen');
+      setupJulienScreen();
+    }
+  } catch (e) {
+    console.error('Erreur connexion parent:', e);
+    alert('Erreur de connexion');
+  }
+}
+
+function setupParentChatScreen() {
+  // Header simplifié pour Ophélie
+  document.getElementById('main-header').innerHTML = `
+    <div class="header-left">
+      <span class="user-avatar">👩</span>
+      <span class="user-greeting">Ophélie</span>
+    </div>
+    <div class="header-right">
+      <button class="btn-icon" onclick="logout()" title="Se déconnecter">🚪</button>
+    </div>
+  `;
+
+  // Masquer la navigation et afficher directement le chat
+  document.getElementById('main-nav').style.display = 'none';
+  document.getElementById('floating-timer').classList.add('hidden');
+  document.getElementById('floating-bot').classList.add('hidden');
+
+  // Afficher la section chat
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const chatSection = document.getElementById('section-chat');
+  chatSection.classList.add('active');
+
+  // Personnaliser le chat pour Ophélie
+  chatSection.querySelector('.section-header').innerHTML = `
+    <button class="btn-back" onclick="logout()">← Retour</button>
+    <h2>💬 Mon espace</h2>
+  `;
+  chatSection.querySelector('.chat-subject-picker').innerHTML = `
+    <button class="chat-subject-btn active" data-subject="" onclick="setChatSubject(this, '')">Libre</button>
+    <button class="chat-subject-btn" data-subject="competences" onclick="setChatSubject(this, 'competences')">🎯 Compétences</button>
+    <button class="chat-subject-btn" data-subject="organisation" onclick="setChatSubject(this, 'organisation')">📋 Organisation</button>
+  `;
+
+  // Message d'accueil personnalisé
+  document.getElementById('chat-messages').innerHTML = `
+    <div class="chat-bubble assistant">
+      <p>Salut Ophélie ! Je suis ton assistant personnel. Tu peux me demander de t'aider à créer ton parcours de compétences, t'organiser, ou discuter de n'importe quel sujet. Qu'est-ce qui te ferait plaisir ? 😊</p>
+    </div>
+  `;
+
+  loadChatHistory();
+}
+
+function setupJulienScreen() {
+  // Header simplifié pour Julien
+  document.getElementById('main-header').innerHTML = `
+    <div class="header-left">
+      <span class="user-avatar">👨</span>
+      <span class="user-greeting">Julien</span>
+    </div>
+    <div class="header-right">
+      <button class="btn-icon" onclick="logout()" title="Se déconnecter">🚪</button>
+    </div>
+  `;
+
+  // Navigation avec parcours + chat
+  const nav = document.getElementById('main-nav');
+  nav.style.display = '';
+  nav.innerHTML = `
+    <button class="nav-btn active" data-section="julien-parcours" onclick="showSection('julien-parcours')">
+      <span class="nav-icon">🎧</span>
+      <span class="nav-label">Parcours</span>
+    </button>
+    <button class="nav-btn" data-section="chat" onclick="showSection('chat')">
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">Assistant</span>
+    </button>
+  `;
+
+  document.getElementById('floating-timer').classList.add('hidden');
+  document.getElementById('floating-bot').classList.add('hidden');
+
+  // Créer la section parcours Julien si elle n'existe pas
+  if (!document.getElementById('section-julien-parcours')) {
+    const section = document.createElement('section');
+    section.id = 'section-julien-parcours';
+    section.className = 'section active';
+    section.innerHTML = `
+      <div class="section-header">
+        <button class="btn-back" onclick="logout()">← Retour</button>
+        <h2>🎧 Mes Parcours de Compétences</h2>
+      </div>
+      <div id="julien-learning-content">
+        <p style="text-align:center; padding:2rem;">Chargement...</p>
+      </div>
+    `;
+    document.getElementById('content-area').appendChild(section);
+  }
+
+  // Afficher la section
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-julien-parcours').classList.add('active');
+
+  // Charger les parcours
+  loadJulienParcours();
+}
+
+async function loadJulienParcours() {
+  const container = document.getElementById('julien-learning-content');
+  try {
+    const res = await fetch('/api/learning/paths');
+    const paths = await res.json();
+
+    if (paths.length === 0) {
+      container.innerHTML = '<p style="text-align:center; padding:2rem; color:var(--text-muted);">Aucun parcours disponible.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+        Profil Analyseur - Parcours structurés pour progresser méthodiquement.
+      </p>
+      <div class="learning-paths-grid">
+        ${paths.map(p => `
+          <div class="learning-path-card" onclick="openJulienPath('${p.slug}')">
+            <div class="learning-path-icon">${p.icon}</div>
+            <div class="learning-path-info">
+              <h4>${p.title}</h4>
+              <p class="learning-path-desc">${p.description || ''}</p>
+              <div class="learning-path-progress">
+                <div class="learning-path-progress-bar">
+                  <div class="learning-path-progress-fill" style="width: ${p.progress || 0}%"></div>
+                </div>
+                <span class="learning-path-progress-text">${p.completedLessons || 0} / ${p.totalLessons || p.total_modules} modules</span>
+              </div>
+            </div>
+            <span class="learning-path-arrow">→</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    console.error('Erreur chargement parcours:', e);
+    container.innerHTML = '<p style="text-align:center; color:#E17055; padding:2rem;">Erreur de chargement</p>';
+  }
+}
+
+async function openJulienPath(slug) {
+  const container = document.getElementById('julien-learning-content');
+  container.innerHTML = '<p style="text-align:center; padding:2rem;">Chargement...</p>';
+
+  try {
+    const res = await fetch(`/api/learning/path/${slug}`);
+    const data = await res.json();
+
+    container.innerHTML = `
+      <button class="btn-back" onclick="loadJulienParcours()" style="margin-bottom: 1rem;">← Retour aux parcours</button>
+      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+        <span style="font-size: 2.5rem;">${data.path.icon}</span>
+        <div>
+          <h3 style="margin: 0;">${data.path.title}</h3>
+          <p style="color: var(--text-muted); margin: 0.3rem 0 0; font-size: 0.9rem;">${data.path.description || ''}</p>
+        </div>
+      </div>
+      <div class="lessons-list">
+        ${data.lessons.map((lesson) => {
+          const status = lesson.status || 'not_started';
+          const statusIcon = status === 'completed' ? '✅' : status === 'in_progress' ? '🔄' : '⬜';
+          const statusClass = status === 'completed' ? 'completed' : status === 'in_progress' ? 'in_progress' : '';
+          return `
+            <div class="lesson-item ${statusClass}" onclick='openAudioLesson(${JSON.stringify(lesson).replace(/'/g, "&#39;")})'>
+              <span class="lesson-status">${statusIcon}</span>
+              <div class="lesson-info">
+                <span class="lesson-number">Module ${lesson.module_number}</span>
+                <h4 class="lesson-title">${lesson.title}</h4>
+                <p class="lesson-subtitle">${lesson.subtitle || ''}</p>
+              </div>
+              <div class="lesson-meta">
+                <span class="lesson-duration">~${lesson.duration_estimate || 10} min</span>
+                ${lesson.quiz_score != null ? `<span class="lesson-score">Quiz: ${lesson.quiz_score}%</span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  } catch (e) {
+    console.error('Erreur chargement parcours:', e);
+    container.innerHTML = '<p style="text-align:center; color:#E17055; padding:2rem;">Erreur de chargement</p>';
   }
 }
 
@@ -138,7 +413,53 @@ async function logout() {
   document.body.className = '';
   document.getElementById('floating-bot').classList.add('hidden');
   document.getElementById('floating-timer').classList.add('hidden');
+
+  // Restaurer le header et nav par défaut
+  const nav = document.getElementById('main-nav');
+  nav.style.display = '';
+  nav.innerHTML = `
+    <button class="nav-btn active" data-section="home" onclick="showSection('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Accueil</span>
+    </button>
+    <button class="nav-btn" data-section="courses" onclick="showSection('courses')">
+      <span class="nav-icon">📖</span>
+      <span class="nav-label">Cours</span>
+    </button>
+    <button class="nav-btn" data-section="exercises" onclick="showSection('exercises')">
+      <span class="nav-icon">✏️</span>
+      <span class="nav-label">Exercices</span>
+    </button>
+    <button class="nav-btn" data-section="chat" onclick="showSection('chat')">
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">Assistant</span>
+    </button>
+  `;
+
+  // Supprimer la section Julien si elle existe
+  const julienSection = document.getElementById('section-julien-parcours');
+  if (julienSection) julienSection.remove();
+
+  // Restaurer le chat par défaut
+  const chatSection = document.getElementById('section-chat');
+  chatSection.querySelector('.section-header').innerHTML = `
+    <button class="btn-back" onclick="showSection('home')">← Retour</button>
+    <h2>Mon Assistant</h2>
+  `;
+  chatSection.querySelector('.chat-subject-picker').innerHTML = `
+    <button class="chat-subject-btn active" data-subject="" onclick="setChatSubject(this, '')">Général</button>
+    <button class="chat-subject-btn" data-subject="francais" onclick="setChatSubject(this, 'francais')">📝 Français</button>
+    <button class="chat-subject-btn" data-subject="anglais" onclick="setChatSubject(this, 'anglais')">🇬🇧 Anglais</button>
+    <button class="chat-subject-btn" data-subject="maths" onclick="setChatSubject(this, 'maths')">🔢 Maths</button>
+  `;
+  document.getElementById('chat-messages').innerHTML = `
+    <div class="chat-bubble assistant">
+      <p>Salut ! Je suis ton assistant devoirs. Comment je peux t'aider ? 😊</p>
+    </div>
+  `;
+
   showScreen('login-screen');
+  loadProfiles();
 }
 
 function showScreen(screenId) {
@@ -1681,21 +2002,121 @@ let audioCharIndex = 0;
 
 function showParentTab(tab) {
   const contentEl = document.getElementById('parent-content');
-  const learningEl = document.getElementById('parent-learning');
+  const birthdaysEl = document.getElementById('parent-birthdays');
   const tabDashboard = document.getElementById('tab-dashboard');
-  const tabLearning = document.getElementById('tab-learning');
+  const tabBirthdays = document.getElementById('tab-birthdays');
 
-  if (tab === 'learning') {
-    contentEl.classList.add('hidden');
-    learningEl.classList.remove('hidden');
-    tabDashboard.className = 'btn-secondary';
-    tabLearning.className = 'btn-primary';
-    loadLearningPaths();
+  // Reset all tabs
+  [tabDashboard, tabBirthdays].forEach(t => { if (t) t.className = 'btn-secondary'; });
+  [contentEl, birthdaysEl].forEach(el => { if (el) el.classList.add('hidden'); });
+
+  if (tab === 'birthdays') {
+    birthdaysEl.classList.remove('hidden');
+    tabBirthdays.className = 'btn-primary';
+    loadBirthdayAdmin();
   } else {
     contentEl.classList.remove('hidden');
-    learningEl.classList.add('hidden');
     tabDashboard.className = 'btn-primary';
-    tabLearning.className = 'btn-secondary';
+  }
+}
+
+async function loadBirthdayAdmin() {
+  const container = document.getElementById('parent-birthdays');
+  container.innerHTML = '<p style="text-align:center; padding:2rem;">Chargement...</p>';
+
+  try {
+    const res = await fetch('/api/parent/family');
+    const members = await res.json();
+
+    container.innerHTML = `
+      <h3 style="margin-bottom: 1rem;">🎂 Anniversaires de la famille</h3>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+        Configurez les dates d'anniversaire pour recevoir des rappels et surprises !
+      </p>
+      <div class="birthday-list">
+        ${members.map(m => `
+          <div class="birthday-card">
+            <div class="birthday-info">
+              <span style="font-size: 2rem;">${m.avatar}</span>
+              <div>
+                <strong>${m.name}</strong>
+                <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">${m.role === 'parent' ? (m.name === 'Ophélie' ? 'Maman' : 'Papa') : m.classe}</span>
+              </div>
+            </div>
+            <div class="birthday-input-group">
+              <input type="date" id="birthday-${m.id}" value="${m.birthday || ''}" class="birthday-input"
+                     onchange="saveBirthday(${m.id}, this.value)">
+              <span id="birthday-status-${m.id}" class="birthday-status"></span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div id="birthday-countdown-section" style="margin-top: 2rem;">
+        <h4>🎉 Prochains anniversaires</h4>
+        <div id="birthday-countdowns"></div>
+      </div>
+    `;
+
+    // Charger les comptes à rebours
+    loadBirthdayCountdowns();
+  } catch (e) {
+    console.error('Erreur chargement anniversaires:', e);
+    container.innerHTML = '<p style="text-align:center; color:#E17055;">Erreur de chargement</p>';
+  }
+}
+
+async function saveBirthday(userId, birthday) {
+  const statusEl = document.getElementById(`birthday-status-${userId}`);
+  try {
+    await fetch(`/api/parent/birthday/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ birthday })
+    });
+    statusEl.textContent = '✅';
+    setTimeout(() => { statusEl.textContent = ''; }, 2000);
+    loadBirthdayCountdowns();
+  } catch (e) {
+    statusEl.textContent = '❌';
+  }
+}
+
+async function loadBirthdayCountdowns() {
+  try {
+    const res = await fetch('/api/parent/birthdays');
+    const birthdays = await res.json();
+
+    const container = document.getElementById('birthday-countdowns');
+    if (!container) return;
+
+    if (birthdays.length === 0) {
+      container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Aucun anniversaire configuré.</p>';
+      return;
+    }
+
+    container.innerHTML = birthdays.map(b => {
+      const isClose = b.daysUntil <= 7;
+      const isToday = b.daysUntil === 0;
+      const urgencyClass = isToday ? 'birthday-today' : isClose ? 'birthday-soon' : '';
+
+      return `
+        <div class="birthday-countdown-item ${urgencyClass}">
+          <span style="font-size: 1.5rem;">${b.avatar}</span>
+          <div style="flex: 1;">
+            <strong>${b.name}</strong>
+            <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">
+              ${new Date(b.nextBirthday + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+            </span>
+          </div>
+          <div class="birthday-countdown-badge ${urgencyClass}">
+            ${isToday ? '🎉 Aujourd\'hui !' : isClose ? `⏰ ${b.daysUntil}j` : `${b.daysUntil} jours`}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('Erreur comptes à rebours:', e);
   }
 }
 

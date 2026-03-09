@@ -141,4 +141,40 @@ router.get('/weekly-report', requireParent, (req, res) => {
   res.json(report);
 });
 
+// GET /api/parent/family - Tous les membres de la famille avec anniversaires
+router.get('/family', requireParent, (req, res) => {
+  const db = req.app.locals.db;
+  const members = db.prepare("SELECT id, name, avatar, age, classe, role, birthday FROM users ORDER BY role ASC, id ASC").all();
+  res.json(members);
+});
+
+// PUT /api/parent/birthday/:userId - Mettre à jour l'anniversaire
+router.put('/birthday/:userId', requireParent, (req, res) => {
+  const db = req.app.locals.db;
+  const { userId } = req.params;
+  const { birthday } = req.body;
+  db.prepare("UPDATE users SET birthday = ? WHERE id = ?").run(birthday, userId);
+  res.json({ ok: true });
+});
+
+// GET /api/parent/birthdays - Prochains anniversaires (public pour banner login)
+router.get('/birthdays', (req, res) => {
+  const db = req.app.locals.db;
+  const members = db.prepare("SELECT id, name, avatar, birthday FROM users WHERE birthday IS NOT NULL").all();
+
+  const today = new Date();
+  const results = members.map(m => {
+    const [month, day] = m.birthday.split('-').slice(1).map(Number);
+    const thisYear = new Date(today.getFullYear(), month - 1, day);
+    let nextBirthday = thisYear;
+    if (thisYear < today) {
+      nextBirthday = new Date(today.getFullYear() + 1, month - 1, day);
+    }
+    const daysUntil = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
+    return { ...m, daysUntil, nextBirthday: nextBirthday.toISOString().split('T')[0] };
+  }).sort((a, b) => a.daysUntil - b.daysUntil);
+
+  res.json(results);
+});
+
 module.exports = router;

@@ -17,10 +17,15 @@
           <span class="title-icon">📚</span>
           Homework Buddy
         </h1>
+        <div id="birthday-banner" class="birthday-banner hidden"></div>
         <p class="app-subtitle">Qui es-tu aujourd'hui ?</p>
         <div id="profiles-grid" class="profiles-grid"></div>
+        <div class="family-separator">
+          <span>Les parents</span>
+        </div>
+        <div id="parents-grid" class="profiles-grid parents-grid"></div>
         <button id="parent-btn" class="parent-link" onclick="showParentLogin()">
-          👨‍👩‍👧‍👦 Espace Parent
+          🔧 Administration
         </button>
       </div>
     </div>
@@ -228,15 +233,15 @@
       </div>
       <div id="parent-dashboard" class="parent-dashboard hidden">
         <header class="parent-header">
-          <h2>📊 Tableau de bord</h2>
+          <h2>🔧 Administration</h2>
           <div style="display: flex; gap: 0.5rem;">
-            <button class="btn-primary" onclick="showParentTab('dashboard')" id="tab-dashboard" style="font-size: 0.85rem;">Enfants</button>
-            <button class="btn-secondary" onclick="showParentTab('learning')" id="tab-learning" style="font-size: 0.85rem;">🎧 Mes Parcours</button>
+            <button class="btn-primary" onclick="showParentTab('dashboard')" id="tab-dashboard" style="font-size: 0.85rem;">📊 Enfants</button>
+            <button class="btn-secondary" onclick="showParentTab('birthdays')" id="tab-birthdays" style="font-size: 0.85rem;">🎂 Anniversaires</button>
             <button class="btn-secondary" onclick="showLoginScreen()" style="font-size: 0.85rem;">Déconnexion</button>
           </div>
         </header>
         <div id="parent-content"></div>
-        <div id="parent-learning" class="hidden" style="padding: 0 1.5rem 1.5rem;"></div>
+        <div id="parent-birthdays" class="hidden" style="padding: 0 1.5rem 1.5rem;"></div>
       </div>
 
       <!-- Audio Player Modal (mode conduite) -->
