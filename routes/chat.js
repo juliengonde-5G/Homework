@@ -4,7 +4,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 
 const client = new Anthropic();
 
-function getSystemPrompt(user) {
+function getSystemPrompt(user, dailyMood) {
   const interests = JSON.parse(user.interests || '[]');
   const dyslexicNote = user.is_dyslexic
     ? `IMPORTANT: Cet enfant est dyslexique. Utilise des phrases courtes et simples. Évite les mots trop longs ou complexes. Sois patient et encourageant. Propose des moyens mnémotechniques visuels quand c'est possible.`
@@ -15,6 +15,20 @@ function getSystemPrompt(user) {
     rebelle: `Profil PCM Rebelle: ${user.name} a besoin de liberté et de choix. Ne lui impose jamais rien. Propose toujours des options. Utilise l'humour. Valide ses émotions. S'il résiste, change d'approche plutôt que d'insister. Il a besoin de sentir qu'il a le contrôle.`,
     imagineur: `Profil PCM Imagineur: ${user.name} est un artiste et un créateur. Il adore Warhammer et l'imaginaire. Utilise des histoires, des métaphores créatives, des univers fantastiques pour expliquer les concepts. Laisse-le s'exprimer à sa manière. Encourage sa créativité.`
   };
+
+  // Contexte du jour basé sur le questionnaire quotidien
+  let dailyContext = '';
+  if (dailyMood) {
+    const parts = [];
+    if (dailyMood.mood) parts.push(`Aujourd'hui ${user.name} se sent: ${dailyMood.mood}`);
+    if (dailyMood.energy) parts.push(`Son niveau d'énergie: ${dailyMood.energy}`);
+    if (dailyMood.passion_today) parts.push(`Sa passion du jour: ${dailyMood.passion_today}. Intègre des exemples liés à "${dailyMood.passion_today}" dans tes explications quand c'est pertinent.`);
+    if (dailyMood.want_to_learn) parts.push(`Ce qu'il veut travailler aujourd'hui: ${dailyMood.want_to_learn}`);
+    if (dailyMood.custom_note) parts.push(`Note personnelle: ${dailyMood.custom_note}`);
+    if (parts.length > 0) {
+      dailyContext = `\nCONTEXTE DU JOUR (questionnaire rempli par l'enfant):\n${parts.join('\n')}\nAdapte ton approche en fonction de son humeur et de son énergie. Si fatigué, sois plus doux et propose des pauses. Si motivé, challenge-le davantage.\n`;
+    }
+  }
 
   return `Tu es un assistant pédagogique bienveillant et ludique pour ${user.name}, ${user.age} ans, en classe de ${user.classe}.
 
@@ -30,7 +44,7 @@ RÈGLES ABSOLUES:
 ${dyslexicNote}
 
 ${profileNotes[user.profile_type] || ''}
-
+${dailyContext}
 MATIÈRES: Tu peux aider en Français, Anglais et Mathématiques.
 - En Français: grammaire, conjugaison, orthographe, rédaction, compréhension de texte
 - En Anglais: vocabulaire, grammaire, expression, compréhension
@@ -46,6 +60,11 @@ router.post('/message', async (req, res) => {
   if (!userId) return res.status(401).json({ error: 'Non connecté' });
 
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+
+  // Récupérer le mood du jour pour personnaliser le contexte
+  const today = new Date().toISOString().split('T')[0];
+  const dailyMood = db.prepare('SELECT * FROM daily_mood WHERE user_id = ? AND date = ?').get(userId, today);
+
   const { message, subject } = req.body;
 
   if (!message || message.trim().length === 0) {
@@ -66,7 +85,7 @@ router.post('/message', async (req, res) => {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
-      system: getSystemPrompt(user),
+      system: getSystemPrompt(user, dailyMood),
       messages: history.map(h => ({
         role: h.role === 'user' ? 'user' : 'assistant',
         content: h.content

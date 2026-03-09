@@ -1592,6 +1592,183 @@ body {
   color: var(--text-light);
 }
 
+/* ==================
+   DAILY MOOD QUESTIONNAIRE
+   ================== */
+.daily-mood-content {
+  max-width: 420px;
+  text-align: center;
+}
+
+.daily-mood-content h2 {
+  font-size: 1.4rem;
+  margin-bottom: 1.2rem;
+  color: var(--primary);
+}
+
+.mood-step {
+  animation: slideUp 0.3s ease-out;
+}
+
+.mood-question {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--text);
+}
+
+.mood-emojis {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.mood-emoji-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.8rem 1rem;
+  border: 3px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  cursor: pointer;
+  font-size: 2rem;
+  transition: all 0.2s;
+  font-family: var(--font);
+  min-width: 80px;
+}
+
+.mood-emoji-btn span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.mood-emoji-btn:hover,
+.mood-emoji-btn.selected {
+  border-color: var(--primary);
+  background: #F8F7FF;
+  transform: scale(1.05);
+}
+
+.mood-emoji-btn.selected {
+  background: var(--primary);
+  color: white;
+}
+
+.mood-emoji-btn.selected span {
+  color: white;
+}
+
+.mood-energy-btn,
+.mood-subject-btn {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 0.6rem;
+  padding: 0.8rem 1.5rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mood-energy-btn:hover,
+.mood-subject-btn:hover {
+  border-color: var(--primary);
+  background: #F8F7FF;
+}
+
+.mood-passions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.mood-passion-btn {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  background: white;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mood-passion-btn:hover,
+.mood-passion-btn.selected {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.mood-custom-input {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.7rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  text-align: center;
+  margin: 0 auto;
+  display: block;
+}
+
+.mood-custom-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.mood-complete {
+  padding: 1.5rem 0;
+}
+
+.mood-complete p {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0.8rem 0 1rem;
+}
+
+.mood-progress {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-top: 1.5rem;
+  overflow: hidden;
+}
+
+.mood-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Passion du jour badge sur l'accueil */
+.daily-passion-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, var(--accent), #F8A5C2);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 0.8rem;
+}
+
 @media (max-width: 768px) {
   .floating-bot {
     bottom: 80px;
@@ -1610,6 +1787,16 @@ body {
 
   .videos-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mood-emojis {
+    gap: 0.5rem;
+  }
+
+  .mood-emoji-btn {
+    min-width: 70px;
+    padding: 0.6rem 0.7rem;
+    font-size: 1.6rem;
   }
 }
 

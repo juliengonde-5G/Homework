@@ -35,6 +35,7 @@ app.use('/api/exercises', require('./routes/exercises'));
 app.use('/api/chat', require('./routes/chat'));
 app.use('/api/parent', require('./routes/parent'));
 app.use('/api/progress', require('./routes/progress'));
+app.use('/api/daily-mood', require('./routes/daily-mood'));
 
 // SPA fallback
 app.get('*', (req, res) => {

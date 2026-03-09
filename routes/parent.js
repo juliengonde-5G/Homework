@@ -59,6 +59,14 @@ router.get('/dashboard', requireParent, (req, res) => {
       }
     });
 
+    // Historique des humeurs (7 derniers jours)
+    const recentMoods = db.prepare(`
+      SELECT date, mood, energy, passion_today, want_to_learn
+      FROM daily_mood
+      WHERE user_id = ?
+      ORDER BY date DESC LIMIT 7
+    `).all(child.id);
+
     return {
       child,
       stats,
@@ -66,6 +74,7 @@ router.get('/dashboard', requireParent, (req, res) => {
       lastSession,
       badges,
       recentExercises,
+      recentMoods,
       strengths,
       weaknesses,
       totalPoints: stats.reduce((sum, s) => sum + s.total_points, 0)

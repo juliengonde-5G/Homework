@@ -232,6 +232,66 @@
       <span class="floating-timer-label">min</span>
     </div>
 
+    <!-- Modal questionnaire quotidien -->
+    <div id="daily-mood-modal" class="modal hidden">
+      <div class="modal-content daily-mood-content">
+        <h2 id="daily-mood-title">Comment tu vas aujourd'hui ?</h2>
+        <div class="daily-mood-steps">
+          <!-- Étape 1: Humeur -->
+          <div id="mood-step-1" class="mood-step">
+            <p class="mood-question">Comment tu te sens ?</p>
+            <div class="mood-options mood-emojis">
+              <button class="mood-emoji-btn" onclick="selectMood('mood', this, 'super bien')" data-value="super bien">😄<span>Super !</span></button>
+              <button class="mood-emoji-btn" onclick="selectMood('mood', this, 'bien')" data-value="bien">🙂<span>Bien</span></button>
+              <button class="mood-emoji-btn" onclick="selectMood('mood', this, 'bof')" data-value="bof">😐<span>Bof</span></button>
+              <button class="mood-emoji-btn" onclick="selectMood('mood', this, 'fatigue')" data-value="fatigue">😴<span>Fatigué</span></button>
+            </div>
+          </div>
+
+          <!-- Étape 2: Énergie -->
+          <div id="mood-step-2" class="mood-step hidden">
+            <p class="mood-question">Ton niveau d'énergie ?</p>
+            <div class="mood-options mood-energy">
+              <button class="mood-energy-btn" onclick="selectMood('energy', this, 'a fond')">🔥 A fond !</button>
+              <button class="mood-energy-btn" onclick="selectMood('energy', this, 'moyen')">⚡ Moyen</button>
+              <button class="mood-energy-btn" onclick="selectMood('energy', this, 'tranquille')">🌊 Tranquille</button>
+            </div>
+          </div>
+
+          <!-- Étape 3: Passion du jour -->
+          <div id="mood-step-3" class="mood-step hidden">
+            <p class="mood-question">C'est quoi ta passion du moment ?</p>
+            <div id="mood-passions" class="mood-options mood-passions"></div>
+            <input type="text" id="mood-passion-custom" class="mood-custom-input" placeholder="Ou tape ta propre passion..." onkeypress="if(event.key==='Enter'){selectCustomPassion()}">
+          </div>
+
+          <!-- Étape 4: Matière préférée -->
+          <div id="mood-step-4" class="mood-step hidden">
+            <p class="mood-question">Tu veux bosser quoi aujourd'hui ?</p>
+            <div class="mood-options mood-subjects">
+              <button class="mood-subject-btn" onclick="selectMood('want_to_learn', this, 'francais')">📝 Français</button>
+              <button class="mood-subject-btn" onclick="selectMood('want_to_learn', this, 'anglais')">🇬🇧 Anglais</button>
+              <button class="mood-subject-btn" onclick="selectMood('want_to_learn', this, 'maths')">🔢 Maths</button>
+              <button class="mood-subject-btn" onclick="selectMood('want_to_learn', this, 'un peu de tout')">🎯 Un peu de tout</button>
+            </div>
+          </div>
+
+          <!-- Étape 5: Fin -->
+          <div id="mood-step-5" class="mood-step hidden">
+            <div class="mood-complete">
+              <span style="font-size: 3rem;">🎉</span>
+              <p id="mood-complete-text">Top ! Je vais personnaliser ta session !</p>
+              <button class="btn-primary" onclick="closeDailyMood()">C'est parti !</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="mood-progress" class="mood-progress">
+          <div id="mood-progress-fill" class="mood-progress-fill" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal bienvenue (première visite) -->
     <div id="welcome-modal" class="modal hidden">
       <div class="modal-content welcome-modal-content">

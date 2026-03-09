@@ -130,6 +130,20 @@ function initDatabase() {
       FOREIGN KEY (user_id) REFERENCES users(id),
       UNIQUE(user_id, subject, skill)
     );
+
+    CREATE TABLE IF NOT EXISTS daily_mood (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      mood TEXT,
+      energy TEXT,
+      passion_today TEXT,
+      want_to_learn TEXT,
+      custom_note TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, date)
+    );
   `);
 
   // Seed users si vide

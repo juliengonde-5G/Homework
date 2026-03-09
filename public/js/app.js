@@ -13,6 +13,9 @@ let chatSubject = '';
 let heartbeatInterval = null;
 let warmthInterval = null;
 let totalDailyMinutes = 45;
+let dailyMoodData = {}; // Réponses du questionnaire du jour
+let currentMoodStep = 1;
+let todayPassion = null; // Passion choisie aujourd'hui
 
 // ==================
 // INITIALISATION
@@ -74,23 +77,40 @@ async function login(userId) {
     loadChatHistory();
     showFloatingBot();
     showFloatingTimer();
-    loadHomeVideos();
     startWarmthQuestions();
 
-    // Première visite ? Afficher le welcome modal
-    const welcomeKey = 'hw_welcomed_' + userId;
-    if (!localStorage.getItem(welcomeKey)) {
-      setTimeout(() => {
-        document.getElementById('welcome-modal').classList.remove('hidden');
-      }, 500);
-      localStorage.setItem(welcomeKey, '1');
+    // Vérifier si le questionnaire du jour a déjà été rempli
+    const moodRes = await fetch('/api/daily-mood');
+    const moodData = await moodRes.json();
+
+    if (moodData.filled) {
+      // Déjà rempli : utiliser les données
+      todayPassion = moodData.mood.passion_today;
+      dailyMoodData = moodData.mood;
+      loadHomeVideos();
+      showDailyPassionBadge();
+
+      // Première visite ? Afficher le welcome modal
+      const welcomeKey = 'hw_welcomed_' + userId;
+      if (!localStorage.getItem(welcomeKey)) {
+        setTimeout(() => {
+          document.getElementById('welcome-modal').classList.remove('hidden');
+        }, 500);
+        localStorage.setItem(welcomeKey, '1');
+      } else {
+        setTimeout(() => {
+          showFloatingBotMessage(getFloatingBotGreeting(), [
+            { text: 'Commencer', action: () => closeFloatingBubble() }
+          ]);
+        }, 1500);
+      }
     } else {
-      // Bot salue
-      setTimeout(() => {
-        showFloatingBotMessage(getFloatingBotGreeting(), [
-          { text: 'Commencer', action: () => closeFloatingBubble() }
-        ]);
-      }, 1500);
+      // Pas encore rempli : afficher le questionnaire
+      const welcomeKey = 'hw_welcomed_' + userId;
+      if (!localStorage.getItem(welcomeKey)) {
+        localStorage.setItem(welcomeKey, '1');
+      }
+      setTimeout(() => showDailyMoodModal(), 500);
     }
   } catch (e) {
     console.error('Erreur login:', e);
@@ -828,11 +848,173 @@ function respondWarmth(btn, response) {
 }
 
 // ==================
+// QUESTIONNAIRE QUOTIDIEN
+// ==================
+function showDailyMoodModal() {
+  currentMoodStep = 1;
+  dailyMoodData = {};
+  document.getElementById('daily-mood-modal').classList.remove('hidden');
+
+  // Personnaliser le titre selon le profil
+  const titles = {
+    promoteur: 'Avant de commencer, coach... 💪',
+    rebelle: 'Hey, dis-moi un truc... 😎',
+    imagineur: 'Aventurier, raconte-moi... ✨'
+  };
+  document.getElementById('daily-mood-title').textContent =
+    titles[currentUser.profile_type] || 'Comment tu vas aujourd\'hui ?';
+
+  // Préparer les passions personnalisées
+  setupPassionOptions();
+  showMoodStep(1);
+}
+
+function setupPassionOptions() {
+  const passionsByProfile = {
+    football: [
+      { label: '⚽ Football', value: 'football' },
+      { label: '🌍 Géopolitique', value: 'géopolitique' },
+      { label: '🎮 Jeux vidéo', value: 'jeux vidéo' },
+      { label: '🏃 Sport', value: 'sport' },
+      { label: '📺 Séries/Films', value: 'séries' },
+      { label: '🎵 Musique', value: 'musique' }
+    ],
+    creative: [
+      { label: '🎭 Théâtre', value: 'théâtre' },
+      { label: '🎵 Musique', value: 'musique' },
+      { label: '🎨 Dessin', value: 'dessin' },
+      { label: '📺 Vidéos/YouTube', value: 'vidéos' },
+      { label: '🎮 Jeux', value: 'jeux' },
+      { label: '📖 Histoires', value: 'histoires' }
+    ],
+    warhammer: [
+      { label: '⚔️ Warhammer', value: 'warhammer' },
+      { label: '🎨 Peinture figurines', value: 'peinture figurines' },
+      { label: '🐉 Fantasy', value: 'fantasy' },
+      { label: '🎮 Jeux vidéo', value: 'jeux vidéo' },
+      { label: '📖 BD/Manga', value: 'bd manga' },
+      { label: '🏰 Histoire médiévale', value: 'histoire médiévale' }
+    ]
+  };
+
+  const passions = passionsByProfile[currentUser.theme] || passionsByProfile.creative;
+  const container = document.getElementById('mood-passions');
+  container.innerHTML = passions.map(p =>
+    `<button class="mood-passion-btn" onclick="selectMood('passion_today', this, '${p.value}')">${p.label}</button>`
+  ).join('');
+}
+
+function showMoodStep(step) {
+  // Masquer tous les steps
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById('mood-step-' + i).classList.add('hidden');
+  }
+  // Afficher le step courant
+  document.getElementById('mood-step-' + step).classList.remove('hidden');
+  currentMoodStep = step;
+
+  // Mettre à jour la progress bar
+  document.getElementById('mood-progress-fill').style.width = ((step - 1) / 4 * 100) + '%';
+}
+
+function selectMood(field, btn, value) {
+  dailyMoodData[field] = value;
+
+  // Highlight le bouton sélectionné
+  const parent = btn.parentElement;
+  parent.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+
+  // Passer à l'étape suivante après un court délai
+  setTimeout(() => {
+    if (currentMoodStep < 4) {
+      showMoodStep(currentMoodStep + 1);
+    } else {
+      // Dernière étape : sauvegarder et afficher le résumé
+      saveDailyMood();
+    }
+  }, 300);
+}
+
+function selectCustomPassion() {
+  const input = document.getElementById('mood-passion-custom');
+  const value = input.value.trim();
+  if (!value) return;
+
+  dailyMoodData.passion_today = value;
+  todayPassion = value;
+
+  setTimeout(() => {
+    showMoodStep(currentMoodStep + 1);
+  }, 200);
+}
+
+async function saveDailyMood() {
+  // Préparer le message de fin personnalisé
+  const messages = {
+    promoteur: 'Top ! Je prépare un programme sur mesure pour toi, champion !',
+    rebelle: 'Cool ! Je m\'adapte a toi aujourd\'hui, pas de stress !',
+    imagineur: 'Genial ! L\'aventure est personnalisee rien que pour toi !'
+  };
+  document.getElementById('mood-complete-text').textContent =
+    messages[currentUser.profile_type] || 'Top ! Je vais personnaliser ta session !';
+
+  showMoodStep(5);
+  document.getElementById('mood-progress-fill').style.width = '100%';
+
+  // Sauvegarder en base
+  try {
+    await fetch('/api/daily-mood', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dailyMoodData)
+    });
+  } catch (e) {
+    console.error('Erreur sauvegarde mood:', e);
+  }
+
+  todayPassion = dailyMoodData.passion_today;
+}
+
+function closeDailyMood() {
+  document.getElementById('daily-mood-modal').classList.add('hidden');
+
+  // Charger les vidéos avec la passion du jour
+  loadHomeVideos();
+  showDailyPassionBadge();
+
+  // Message du bot
+  setTimeout(() => {
+    const passionMsg = todayPassion
+      ? `Je vois que tu es a fond sur "${todayPassion}" aujourd'hui ! J'ai prepare des trucs pour toi 🎯`
+      : getFloatingBotGreeting();
+    showFloatingBotMessage(passionMsg, [
+      { text: 'Super !', action: () => closeFloatingBubble() }
+    ]);
+  }, 500);
+}
+
+function showDailyPassionBadge() {
+  if (!todayPassion) return;
+  const welcomeCard = document.getElementById('welcome-card');
+  if (!welcomeCard) return;
+
+  // Supprimer un ancien badge s'il existe
+  const existing = welcomeCard.querySelector('.daily-passion-badge');
+  if (existing) existing.remove();
+
+  const badge = document.createElement('div');
+  badge.className = 'daily-passion-badge';
+  badge.innerHTML = `🎯 Passion du jour : <strong>${todayPassion}</strong>`;
+  welcomeCard.appendChild(badge);
+}
+
+// ==================
 // VIDEOS PERSONNALISÉES
 // ==================
 function getEducationalVideos() {
-  // Vidéos éducatives adaptées aux passions et au niveau
-  const videos = {
+  // Vidéos éducatives de base par thème
+  const baseVideos = {
     football: [
       { title: 'Les maths du football - Angles et trajectoires', icon: '⚽📐', subject: 'maths', url: 'https://www.youtube.com/results?search_query=math+football+angles+trajectoire+education' },
       { title: 'La géopolitique du football mondial', icon: '🌍⚽', subject: 'general', url: 'https://www.youtube.com/results?search_query=g%C3%A9opolitique+football+education' },
@@ -853,7 +1035,48 @@ function getEducationalVideos() {
     ]
   };
 
-  return videos[currentUser.theme] || videos.creative;
+  let videos = baseVideos[currentUser.theme] || baseVideos.creative;
+
+  // Ajouter des vidéos dynamiques basées sur la passion du jour
+  if (todayPassion) {
+    const passionVideos = generatePassionVideos(todayPassion);
+    // Mettre les vidéos passion en premier
+    videos = [...passionVideos, ...videos];
+  }
+
+  return videos;
+}
+
+function generatePassionVideos(passion) {
+  const encoded = encodeURIComponent(passion);
+  const level = currentUser.classe === '4ème' ? '4eme' : '6eme';
+  const passionIcon = getPassionIcon(passion);
+
+  return [
+    {
+      title: `Apprendre les maths avec "${passion}"`,
+      icon: passionIcon + '🔢',
+      subject: 'maths',
+      url: `https://www.youtube.com/results?search_query=maths+${encoded}+${level}+education+fun`
+    },
+    {
+      title: `"${passion}" en anglais - Vocabulaire fun`,
+      icon: passionIcon + '🇬🇧',
+      subject: 'anglais',
+      url: `https://www.youtube.com/results?search_query=${encoded}+english+vocabulary+kids+learn`
+    }
+  ];
+}
+
+function getPassionIcon(passion) {
+  const icons = {
+    'football': '⚽', 'géopolitique': '🌍', 'jeux vidéo': '🎮', 'sport': '🏃',
+    'séries': '📺', 'musique': '🎵', 'théâtre': '🎭', 'dessin': '🎨',
+    'vidéos': '📺', 'jeux': '🎮', 'histoires': '📖', 'warhammer': '⚔️',
+    'peinture figurines': '🎨', 'fantasy': '🐉', 'bd manga': '📖',
+    'histoire médiévale': '🏰'
+  };
+  return icons[passion.toLowerCase()] || '🎯';
 }
 
 function loadHomeVideos() {
@@ -1017,6 +1240,23 @@ async function loadParentDashboard() {
             </div>
           ` : ''}
 
+          ${d.recentMoods && d.recentMoods.length > 0 ? `
+            <div class="report-section">
+              <h4>🧠 Humeurs & passions récentes</h4>
+              <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                ${d.recentMoods.map(m => `
+                  <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; background: var(--bg); border-radius: 8px; font-size: 0.8rem;">
+                    <span style="font-weight: 700; min-width: 65px;">${new Date(m.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}</span>
+                    <span>${getMoodEmoji(m.mood)}</span>
+                    <span>${getEnergyEmoji(m.energy)}</span>
+                    ${m.passion_today ? `<span style="background: var(--accent); color: white; padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.75rem;">🎯 ${m.passion_today}</span>` : ''}
+                    ${m.want_to_learn ? `<span style="color: var(--text-muted);">→ ${m.want_to_learn}</span>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
           <button class="btn-secondary" style="margin-top: 1rem; font-size: 0.85rem;" onclick="viewChatHistory(${d.child.id}, '${d.child.name}')">
             💬 Voir l'historique du chat
           </button>
@@ -1165,6 +1405,16 @@ function renderPerformanceChart(d) {
       }
     }
   });
+}
+
+function getMoodEmoji(mood) {
+  const map = { 'super bien': '😄', 'bien': '🙂', 'bof': '😐', 'fatigue': '😴' };
+  return map[mood] || '🙂';
+}
+
+function getEnergyEmoji(energy) {
+  const map = { 'a fond': '🔥', 'moyen': '⚡', 'tranquille': '🌊' };
+  return map[energy] || '⚡';
 }
 
 async function viewChatHistory(userId, name) {
