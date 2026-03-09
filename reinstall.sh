@@ -12,9 +12,14 @@ echo ""
 # Se placer dans le dossier du projet
 cd "$(dirname "$0")"
 
-# 1. Arrêter le container
+# 1. Arrêter le container (avec timeout pour éviter le blocage)
 echo "⏹️  Arrêt du container..."
-docker compose down 2>/dev/null || docker-compose down 2>/dev/null
+timeout 30 docker compose down 2>/dev/null || timeout 30 docker-compose down 2>/dev/null || {
+  echo "   ⚠️  docker compose down bloqué, arrêt forcé..."
+  docker kill homework-buddy 2>/dev/null || true
+  docker rm -f homework-buddy 2>/dev/null || true
+  docker compose rm -f 2>/dev/null || docker-compose rm -f 2>/dev/null || true
+}
 echo "   ✅ Container arrêté"
 echo ""
 
