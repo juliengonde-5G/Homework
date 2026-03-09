@@ -199,24 +199,7 @@ function initDatabase() {
     db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'child'");
   }
 
-  // Ajouter les profils parents si absents
-  const parentCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'parent'").get();
-  if (parentCount.count === 0) {
-    const existingPro = db.prepare("SELECT COUNT(*) as count FROM users WHERE classe = 'Pro'").get();
-    if (existingPro.count === 0) {
-      db.prepare(`INSERT INTO users (name, avatar, age, classe, profile_type, theme, is_dyslexic, interests, daily_limit_minutes, birthday, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
-        'Ophélie', '👩', 40, 'Pro', 'promoteur', 'ophelie', 0,
-        JSON.stringify(['train', 'développement personnel', 'compétences']), 999, null, 'parent');
-      db.prepare(`INSERT INTO users (name, avatar, age, classe, profile_type, theme, is_dyslexic, interests, daily_limit_minutes, birthday, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
-        'Julien', '👨', 40, 'Pro', 'analyseur', 'entrepreneur', 0,
-        JSON.stringify(['textile', 'recyclage', 'IA', 'management']), 999, null, 'parent');
-    } else {
-      // Mettre à jour les profils Pro existants
-      db.exec("UPDATE users SET role = 'parent' WHERE classe = 'Pro'");
-    }
-  }
-
-  // Seed users si vide
+  // Seed users si vide (enfants + parents)
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
   if (userCount.count === 0) {
     const insertUserFull = db.prepare(`
@@ -245,6 +228,16 @@ function initDatabase() {
       }
     }
   }
+
+  // Migration: ajouter les profils parents si absents (pour DB existantes)
+  const ophelieExists = db.prepare("SELECT COUNT(*) as count FROM users WHERE name = 'Ophélie'").get();
+  if (ophelieExists.count === 0) {
+    db.prepare(`INSERT INTO users (name, avatar, age, classe, profile_type, theme, is_dyslexic, interests, daily_limit_minutes, birthday, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+      'Ophélie', '👩', 40, 'Pro', 'promoteur', 'ophelie', 0,
+      JSON.stringify(['train', 'développement personnel', 'compétences']), 999, null, 'parent');
+  }
+  // Mettre à jour le role des utilisateurs Pro existants
+  db.exec("UPDATE users SET role = 'parent' WHERE classe = 'Pro' AND (role IS NULL OR role = 'child')");
 
   // Seed badges si vide
   const badgeCount = db.prepare('SELECT COUNT(*) as count FROM badges').get();
