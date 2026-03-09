@@ -1,0 +1,19 @@
+{
+  "name": "homework-buddy",
+  "version": "1.0.0",
+  "description": "Application ludique d'aide aux devoirs pour Ilan, Sacha et Adam",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "express": "^4.21.0",
+    "better-sqlite3": "^11.6.0",
+    "bcryptjs": "^2.4.3",
+    "express-session": "^1.18.1",
+    "connect-sqlite3": "^0.9.15",
+    "dotenv": "^16.4.7"
+  }
+}

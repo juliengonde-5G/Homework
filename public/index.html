@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homework Buddy - Ton assistant devoirs</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <!-- Écran de sélection de profil -->
+    <div id="login-screen" class="screen active">
+      <div class="login-container">
+        <h1 class="app-title">
+          <span class="title-icon">📚</span>
+          Homework Buddy
+        </h1>
+        <p class="app-subtitle">Qui es-tu aujourd'hui ?</p>
+        <div id="profiles-grid" class="profiles-grid"></div>
+        <button id="parent-btn" class="parent-link" onclick="showParentLogin()">
+          👨‍👩‍👧‍👦 Espace Parent
+        </button>
+      </div>
+    </div>
+
+    <!-- Écran principal (après connexion) -->
+    <div id="main-screen" class="screen">
+      <header id="main-header">
+        <div class="header-left">
+          <span id="user-avatar" class="user-avatar"></span>
+          <span id="user-greeting" class="user-greeting"></span>
+        </div>
+        <div class="header-center">
+          <div id="timer-display" class="timer-display">
+            <span class="timer-icon">⏱️</span>
+            <span id="timer-value">45:00</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <span id="points-display" class="points-badge">0 pts</span>
+          <button class="btn-icon" onclick="showBadges()" title="Mes badges">🏅</button>
+          <button class="btn-icon" onclick="logout()" title="Se déconnecter">🚪</button>
+        </div>
+      </header>
+
+      <nav id="main-nav">
+        <button class="nav-btn active" data-section="home" onclick="showSection('home')">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Accueil</span>
+        </button>
+        <button class="nav-btn" data-section="courses" onclick="showSection('courses')">
+          <span class="nav-icon">📖</span>
+          <span class="nav-label">Cours</span>
+        </button>
+        <button class="nav-btn" data-section="exercises" onclick="showSection('exercises')">
+          <span class="nav-icon">✏️</span>
+          <span class="nav-label">Exercices</span>
+        </button>
+        <button class="nav-btn" data-section="chat" onclick="showSection('chat')">
+          <span class="nav-icon">💬</span>
+          <span class="nav-label">Assistant</span>
+        </button>
+      </nav>
+
+      <main id="content-area">
+        <!-- Section Accueil -->
+        <section id="section-home" class="section active">
+          <div id="welcome-card" class="welcome-card">
+            <h2 id="welcome-message"></h2>
+            <p id="motivation-text"></p>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-card">
+              <span class="stat-icon">🔥</span>
+              <span id="stat-streak" class="stat-value">0</span>
+              <span class="stat-label">Série</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">⭐</span>
+              <span id="stat-points" class="stat-value">0</span>
+              <span class="stat-label">Points</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">✅</span>
+              <span id="stat-exercises" class="stat-value">0</span>
+              <span class="stat-label">Exercices</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">🎯</span>
+              <span id="stat-success" class="stat-value">0%</span>
+              <span class="stat-label">Réussite</span>
+            </div>
+          </div>
+
+          <h3 class="section-title">Choisis ta matière</h3>
+          <div class="subjects-grid">
+            <button class="subject-card subject-francais" onclick="selectSubject('francais')">
+              <span class="subject-icon">📝</span>
+              <span class="subject-name">Français</span>
+              <div id="progress-francais" class="progress-mini"></div>
+            </button>
+            <button class="subject-card subject-anglais" onclick="selectSubject('anglais')">
+              <span class="subject-icon">🇬🇧</span>
+              <span class="subject-name">Anglais</span>
+              <div id="progress-anglais" class="progress-mini"></div>
+            </button>
+            <button class="subject-card subject-maths" onclick="selectSubject('maths')">
+              <span class="subject-icon">🔢</span>
+              <span class="subject-name">Maths</span>
+              <div id="progress-maths" class="progress-mini"></div>
+            </button>
+          </div>
+
+          <div id="recent-badges" class="recent-badges"></div>
+        </section>
+
+        <!-- Section Cours -->
+        <section id="section-courses" class="section">
+          <div class="section-header">
+            <button class="btn-back" onclick="showSection('home')">← Retour</button>
+            <h2 id="courses-title">Cours</h2>
+          </div>
+          <div id="courses-list" class="courses-list"></div>
+          <div id="course-detail" class="course-detail hidden">
+            <button class="btn-back" onclick="hideCourseDetail()">← Retour aux cours</button>
+            <div id="course-content"></div>
+            <button class="btn-primary" onclick="startExercisesForCourse()">
+              Faire les exercices 💪
+            </button>
+          </div>
+        </section>
+
+        <!-- Section Exercices -->
+        <section id="section-exercises" class="section">
+          <div class="section-header">
+            <button class="btn-back" onclick="showSection('home')">← Retour</button>
+            <h2 id="exercises-title">Exercices</h2>
+          </div>
+          <div id="exercise-container" class="exercise-container">
+            <div id="exercise-progress-bar" class="exercise-progress-bar">
+              <div id="exercise-progress-fill" class="exercise-progress-fill"></div>
+            </div>
+            <div id="exercise-card" class="exercise-card"></div>
+          </div>
+          <div id="exercise-result" class="exercise-result hidden"></div>
+          <div id="exercise-complete" class="exercise-complete hidden">
+            <h2>Bravo ! 🎉</h2>
+            <p id="exercise-summary"></p>
+            <button class="btn-primary" onclick="showSection('home')">Retour à l'accueil</button>
+          </div>
+        </section>
+
+        <!-- Section Chat -->
+        <section id="section-chat" class="section">
+          <div class="section-header">
+            <button class="btn-back" onclick="showSection('home')">← Retour</button>
+            <h2>Mon Assistant</h2>
+          </div>
+          <div class="chat-subject-picker">
+            <button class="chat-subject-btn active" data-subject="" onclick="setChatSubject(this, '')">Général</button>
+            <button class="chat-subject-btn" data-subject="francais" onclick="setChatSubject(this, 'francais')">📝 Français</button>
+            <button class="chat-subject-btn" data-subject="anglais" onclick="setChatSubject(this, 'anglais')">🇬🇧 Anglais</button>
+            <button class="chat-subject-btn" data-subject="maths" onclick="setChatSubject(this, 'maths')">🔢 Maths</button>
+          </div>
+          <div id="chat-messages" class="chat-messages">
+            <div class="chat-bubble assistant">
+              <p>Salut ! Je suis ton assistant devoirs. Comment je peux t'aider ? 😊</p>
+            </div>
+          </div>
+          <form id="chat-form" class="chat-input-area" onsubmit="sendMessage(event)">
+            <input type="text" id="chat-input" placeholder="Pose ta question ici..." autocomplete="off">
+            <button type="submit" class="btn-send">Envoyer</button>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <!-- Modal Badges -->
+    <div id="badges-modal" class="modal hidden">
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeBadges()">✕</button>
+        <h2>Mes Badges 🏅</h2>
+        <div id="badges-grid" class="badges-grid"></div>
+      </div>
+    </div>
+
+    <!-- Écran Parent -->
+    <div id="parent-screen" class="screen">
+      <div id="parent-login-form" class="parent-login">
+        <h2>👨‍👩‍👧‍👦 Espace Parent</h2>
+        <form onsubmit="parentLogin(event)">
+          <input type="password" id="parent-password" placeholder="Mot de passe" class="input-field">
+          <button type="submit" class="btn-primary">Se connecter</button>
+        </form>
+        <button class="parent-link" onclick="showLoginScreen()">← Retour</button>
+      </div>
+      <div id="parent-dashboard" class="parent-dashboard hidden">
+        <header class="parent-header">
+          <h2>📊 Tableau de bord</h2>
+          <button class="btn-secondary" onclick="showLoginScreen()">Déconnexion</button>
+        </header>
+        <div id="parent-content"></div>
+      </div>
+    </div>
+
+    <!-- Alerte temps écoulé -->
+    <div id="time-up-modal" class="modal hidden">
+      <div class="modal-content time-up">
+        <h2>⏰ Temps écoulé !</h2>
+        <p>Tu as bien travaillé aujourd'hui ! Il est temps de faire une pause. Reviens demain pour continuer ! 💪</p>
+        <button class="btn-primary" onclick="logout()">OK, à demain !</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
