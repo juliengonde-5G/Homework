@@ -21,16 +21,13 @@ else
 fi
 echo "   Utilisation de: $DC"
 
-# 1. Arrêter le container (avec timeout pour éviter le blocage)
+# 1. Arrêter et supprimer tous les containers liés
 echo ""
 echo "⏹️  Arrêt du container..."
-timeout 30 $DC down || {
-  echo "   ⚠️  docker compose down bloqué, arrêt forcé..."
-  sudo docker kill homework-buddy 2>/dev/null || true
-  sudo docker rm -f homework-buddy 2>/dev/null || true
-  $DC rm -f 2>/dev/null || true
-}
-echo "   ✅ Container arrêté"
+sudo docker kill homework-buddy 2>/dev/null || true
+sudo docker rm -f homework-buddy 2>/dev/null || true
+timeout 30 $DC down --remove-orphans 2>/dev/null || true
+echo "   ✅ Container arrêté et supprimé"
 
 # 2. Récupérer la dernière version du code
 echo ""
