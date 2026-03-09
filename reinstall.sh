@@ -4,52 +4,67 @@
 # Supprime la DB, rebuild et relance le tout
 # ============================================
 
-set -e
-
 echo "🔧 Réinstallation de Homework Buddy..."
 echo ""
 
 # Se placer dans le dossier du projet
 cd "$(dirname "$0")"
 
+# Détecter la commande docker compose
+if docker compose version >/dev/null 2>&1; then
+  DC="docker compose"
+elif docker-compose version >/dev/null 2>&1; then
+  DC="docker-compose"
+else
+  echo "❌ Docker Compose non trouvé !"
+  exit 1
+fi
+echo "   Utilisation de: $DC"
+
 # 1. Arrêter le container (avec timeout pour éviter le blocage)
+echo ""
 echo "⏹️  Arrêt du container..."
-timeout 30 docker compose down 2>/dev/null || timeout 30 docker-compose down 2>/dev/null || {
+timeout 30 $DC down || {
   echo "   ⚠️  docker compose down bloqué, arrêt forcé..."
   docker kill homework-buddy 2>/dev/null || true
   docker rm -f homework-buddy 2>/dev/null || true
-  docker compose rm -f 2>/dev/null || docker-compose rm -f 2>/dev/null || true
+  $DC rm -f 2>/dev/null || true
 }
 echo "   ✅ Container arrêté"
-echo ""
 
 # 2. Récupérer la dernière version du code
-echo "📥 Mise à jour du code depuis GitHub..."
-git pull origin claude/homework-help-app-YBqDC 2>/dev/null || echo "   ⚠️  Git pull ignoré (pas de remote ou branche différente)"
 echo ""
+echo "📥 Mise à jour du code depuis GitHub..."
+git pull origin claude/homework-help-app-YBqDC || echo "   ⚠️  Git pull ignoré"
 
 # 3. Supprimer les anciennes bases de données
+echo ""
 echo "🗑️  Suppression des anciennes bases de données..."
-rm -f homework.db
-rm -f sessions.db
-rm -f data/homework.db
-rm -f data/sessions.db
+rm -f homework.db sessions.db data/homework.db data/sessions.db
 echo "   ✅ Bases supprimées"
-echo ""
 
-# 4. Rebuild complet de l'image Docker (sans cache)
-echo "🏗️  Reconstruction de l'image Docker..."
-docker compose build --no-cache 2>/dev/null || docker-compose build --no-cache 2>/dev/null
-echo "   ✅ Image reconstruite"
+# 4. Rebuild complet de l'image Docker (sans cache, BuildKit désactivé pour Synology)
 echo ""
+echo "🏗️  Reconstruction de l'image Docker..."
+DOCKER_BUILDKIT=0 $DC build --no-cache
+if [ $? -ne 0 ]; then
+  echo "   ❌ Échec du build ! Vérifiez les erreurs ci-dessus."
+  exit 1
+fi
+echo "   ✅ Image reconstruite"
 
 # 5. Relancer le container
-echo "🚀 Lancement du container..."
-docker compose up -d 2>/dev/null || docker-compose up -d 2>/dev/null
-echo "   ✅ Container démarré"
 echo ""
+echo "🚀 Lancement du container..."
+$DC up -d
+if [ $? -ne 0 ]; then
+  echo "   ❌ Échec du lancement !"
+  exit 1
+fi
+echo "   ✅ Container démarré"
 
 # 6. Vérifier que ça tourne
+echo ""
 echo "⏳ Vérification du démarrage (10s)..."
 sleep 10
 if docker ps | grep -q homework-buddy; then
@@ -58,7 +73,7 @@ if docker ps | grep -q homework-buddy; then
     echo "🎓 Accès : http://$(hostname -I 2>/dev/null | awk '{print $1}' || echo 'ton-nas'):3000"
 else
     echo "   ❌ Le container ne semble pas tourner. Vérifie les logs :"
-    echo "   docker logs homework-buddy"
+    echo "      docker logs homework-buddy"
 fi
 echo ""
 echo "✨ Réinstallation terminée !"
