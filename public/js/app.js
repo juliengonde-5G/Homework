@@ -298,12 +298,13 @@ async function openJulienPath(slug) {
         </div>
       </div>
       <div class="lessons-list">
-        ${data.lessons.map((lesson) => {
+        ${data.lessons.map((lesson, i) => {
+          _lessonCache[i] = lesson;
           const status = lesson.status || 'not_started';
           const statusIcon = status === 'completed' ? '✅' : status === 'in_progress' ? '🔄' : '⬜';
           const statusClass = status === 'completed' ? 'completed' : status === 'in_progress' ? 'in_progress' : '';
           return `
-            <div class="lesson-item ${statusClass}" onclick='openAudioLesson(${JSON.stringify(lesson).replace(/'/g, "&#39;")})'>
+            <div class="lesson-item ${statusClass}" onclick="openAudioLesson(_lessonCache[${i}])">
               <span class="lesson-status">${statusIcon}</span>
               <div class="lesson-info">
                 <span class="lesson-number">Module ${lesson.module_number}</span>
@@ -2025,6 +2026,7 @@ async function sendDecouverteMessage(e) {
 // PARCOURS D'APPRENTISSAGE (Parent - Audio)
 // ==================
 let currentAudioLesson = null;
+let _lessonCache = [];
 let speechUtterance = null;
 let speechPlaying = false;
 let audioSpeed = 1;
@@ -2212,11 +2214,12 @@ async function openLearningPath(slug) {
       </div>
       <div class="lessons-list">
         ${data.lessons.map((lesson, i) => {
+          _lessonCache[i] = lesson;
           const status = lesson.status || 'not_started';
           const statusIcon = status === 'completed' ? '✅' : status === 'in_progress' ? '🔄' : '⬜';
           const statusClass = status === 'completed' ? 'completed' : status === 'in_progress' ? 'in_progress' : '';
           return `
-            <div class="lesson-item ${statusClass}" onclick='openAudioLesson(${JSON.stringify(lesson).replace(/'/g, "&#39;")})'>
+            <div class="lesson-item ${statusClass}" onclick="openAudioLesson(_lessonCache[${i}])">
               <span class="lesson-status">${statusIcon}</span>
               <div class="lesson-info">
                 <span class="lesson-number">Module ${lesson.module_number}</span>
