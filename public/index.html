@@ -55,13 +55,9 @@
           <span class="nav-icon">🏠</span>
           <span class="nav-label">Accueil</span>
         </button>
-        <button class="nav-btn" data-section="courses" onclick="showSection('courses')">
+        <button class="nav-btn" data-section="learn" onclick="showSection('learn')">
           <span class="nav-icon">📖</span>
-          <span class="nav-label">Cours</span>
-        </button>
-        <button class="nav-btn" data-section="exercises" onclick="showSection('exercises')">
-          <span class="nav-icon">✏️</span>
-          <span class="nav-label">Exercices</span>
+          <span class="nav-label">Apprendre</span>
         </button>
         <button class="nav-btn" data-section="chat" onclick="showSection('chat')">
           <span class="nav-icon">💬</span>
@@ -130,39 +126,41 @@
           <div id="recent-badges" class="recent-badges"></div>
         </section>
 
-        <!-- Section Cours -->
-        <section id="section-courses" class="section">
+        <!-- Section Apprendre (flux unifié : choix matière -> leçon -> exercices -> vidéos) -->
+        <section id="section-learn" class="section">
           <div class="section-header">
-            <button class="btn-back" onclick="showSection('home')">← Retour</button>
-            <h2 id="courses-title">Cours</h2>
+            <button class="btn-back" id="learn-back-btn" onclick="learnGoBack()">← Retour</button>
+            <h2 id="learn-title">Apprendre</h2>
           </div>
-          <div id="courses-list" class="courses-list"></div>
-          <div id="course-detail" class="course-detail hidden">
-            <button class="btn-back" onclick="hideCourseDetail()">← Retour aux cours</button>
-            <div id="course-content"></div>
-            <button class="btn-primary" onclick="startExercisesForCourse()">
-              Faire les exercices 💪
+
+          <!-- Étape 1: Liste des leçons d'une matière -->
+          <div id="learn-courses-list" class="courses-list"></div>
+
+          <!-- Étape 2: Contenu de la leçon -->
+          <div id="learn-course-detail" class="course-detail hidden">
+            <div id="learn-course-content"></div>
+            <button class="btn-primary" onclick="learnStartExercises()">
+              C'est compris, je passe aux exercices ! 💪
             </button>
           </div>
-        </section>
 
-        <!-- Section Exercices -->
-        <section id="section-exercises" class="section">
-          <div class="section-header">
-            <button class="btn-back" onclick="showSection('home')">← Retour</button>
-            <h2 id="exercises-title">Exercices</h2>
-          </div>
-          <div id="exercise-container" class="exercise-container">
-            <div id="exercise-progress-bar" class="exercise-progress-bar">
-              <div id="exercise-progress-fill" class="exercise-progress-fill"></div>
+          <!-- Étape 3: Exercices associés -->
+          <div id="learn-exercises" class="hidden">
+            <div id="exercise-container" class="exercise-container">
+              <div id="exercise-progress-bar" class="exercise-progress-bar">
+                <div id="exercise-progress-fill" class="exercise-progress-fill"></div>
+              </div>
+              <div id="exercise-card" class="exercise-card"></div>
             </div>
-            <div id="exercise-card" class="exercise-card"></div>
+            <div id="exercise-result" class="exercise-result hidden"></div>
           </div>
-          <div id="exercise-result" class="exercise-result hidden"></div>
-          <div id="exercise-complete" class="exercise-complete hidden">
+
+          <!-- Étape 4: Résultat + vidéos -->
+          <div id="learn-complete" class="exercise-complete hidden">
             <h2>Bravo ! 🎉</h2>
             <p id="exercise-summary"></p>
-            <button class="btn-primary" onclick="showSection('home')">Retour à l'accueil</button>
+            <div id="learn-videos-reward" class="home-videos-section"></div>
+            <button class="btn-primary" onclick="showSection('home')" style="margin-top:1rem;">Retour à l'accueil</button>
           </div>
         </section>
 

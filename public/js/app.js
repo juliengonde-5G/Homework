@@ -431,13 +431,9 @@ async function logout() {
       <span class="nav-icon">🏠</span>
       <span class="nav-label">Accueil</span>
     </button>
-    <button class="nav-btn" data-section="courses" onclick="showSection('courses')">
+    <button class="nav-btn" data-section="learn" onclick="showSection('learn')">
       <span class="nav-icon">📖</span>
-      <span class="nav-label">Cours</span>
-    </button>
-    <button class="nav-btn" data-section="exercises" onclick="showSection('exercises')">
-      <span class="nav-icon">✏️</span>
-      <span class="nav-label">Exercices</span>
+      <span class="nav-label">Apprendre</span>
     </button>
     <button class="nav-btn" data-section="chat" onclick="showSection('chat')">
       <span class="nav-icon">💬</span>
@@ -563,13 +559,13 @@ function pauseTimer() {
 }
 
 function getTimerEndMessage() {
+  const name = currentUser?.name;
   const msgs = {
-    promoteur: ['Temps écoulé champion ! Tu as super bien bossé ! 🏆', 'Fin du match ! Quelle performance ! ⚽💪'],
-    rebelle: ['Hey, les 45 min sont passées ! T\'as bien géré 😎', 'Temps fini ! T\'as assuré, prends une pause ✌️'],
-    imagineur: ['La quête du jour est terminée, héros ! 🐉✨', 'Ton aventure a été épique aujourd\'hui ! 🌟'],
-    entrepreneur: ['Session terminée ! Bel investissement en compétences 💼', 'Bien joué, chaque minute compte pour progresser 🚀']
+    'Ilan': ['Temps écoulé champion ! Tu as super bien bossé ! 🏆', 'Fin du match ! Quelle performance ! ⚽💪'],
+    'Sacha': ['Hey, les 45 min sont passées ! T\'as bien géré 😎', 'Temps fini ! T\'as assuré, prends une pause ✌️'],
+    'Adan': ['La quête du jour est terminée, héros ! 🐉✨', 'Ton aventure a été épique aujourd\'hui ! 🌟']
   };
-  const pool = msgs[currentUser?.profile_type] || msgs.promoteur;
+  const pool = msgs[name] || ['Session terminée ! Bien joué ! 🌟'];
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -614,29 +610,13 @@ function showFloatingBot() {
 }
 
 function getFloatingBotGreeting() {
+  const name = currentUser.name;
   const greetings = {
-    promoteur: [
-      'Hey ' + currentUser.name + ' ! Pret a marquer des points ? 💪',
-      'Salut champion ! Besoin d\'un coup de main ?',
-      'Yo ! Tu veux battre ton record aujourd\'hui ? ⚽'
-    ],
-    rebelle: [
-      'Hey ' + currentUser.name + ' ! Je suis la si tu veux. Pas de pression 😎',
-      'Salut ! T\'as des questions ? Je suis dispo ✌️',
-      'Coucou ! Je traine ici si tu as besoin 🎸'
-    ],
-    imagineur: [
-      'Salut ' + currentUser.name + ' ! Pret pour une nouvelle aventure ? ✨',
-      'Hey createur ! Je suis ton compagnon de quete 🐉',
-      'Bienvenue aventurier ! Besoin d\'aide dans ta quete ? 🗡️'
-    ],
-    entrepreneur: [
-      'Bonjour ' + currentUser.name + ' ! Pret a developper vos competences ? 💼',
-      'Salut ! Un module d\'anglais ou d\'IA aujourd\'hui ? 🚀',
-      'Hello ! Votre assistant formation est la 📚'
-    ]
+    'Ilan': [`Hey ${name} ! Pret a marquer des points ? 💪`, `Salut champion ! Besoin d'un coup de main ?`, `Yo ! Tu veux battre ton record aujourd'hui ? ⚽`],
+    'Sacha': [`Hey ${name} ! Je suis la si tu veux. Pas de pression 😎`, `Salut ! T'as des questions ? Je suis dispo ✌️`, `Coucou ! Je traine ici si tu as besoin 🎸`],
+    'Adan': [`Salut ${name} ! Pret pour une nouvelle aventure ? ✨`, `Hey createur ! Je suis ton compagnon de quete 🐉`, `Bienvenue aventurier ! Besoin d'aide dans ta quete ? 🗡️`]
   };
-  const pool = greetings[currentUser.profile_type] || greetings.promoteur;
+  const pool = greetings[name] || [`Salut ${name} ! Comment je peux t'aider ? 😊`];
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -693,8 +673,8 @@ function showSection(sectionId) {
     }
   }
 
-  // Timer : tourne uniquement pendant les exercices
-  if (sectionId === 'exercises') {
+  // Timer : tourne pendant les leçons et exercices (section learn)
+  if (sectionId === 'learn') {
     resumeTimer();
   } else {
     pauseTimer();
@@ -749,27 +729,45 @@ async function loadStats() {
 }
 
 // ==================
-// MATIÈRES & COURS
+// PARCOURS APPRENDRE (flux unifié : matière -> leçon -> exercices -> vidéos)
 // ==================
+let learnStep = 'list'; // 'list', 'lesson', 'exercises', 'complete'
+
 function selectSubject(subject) {
   currentSubject = subject;
   const names = { francais: 'Français', anglais: 'Anglais', maths: 'Mathématiques' };
-  document.getElementById('courses-title').textContent = 'Cours de ' + names[subject];
-  document.getElementById('exercises-title').textContent = 'Exercices de ' + names[subject];
-  loadCourses(subject);
-  showSection('courses');
+  document.getElementById('learn-title').textContent = names[subject];
+  learnStep = 'list';
+  loadLearnCourses(subject);
+  showSection('learn');
+  resumeTimer(); // Timer démarre dès qu'on entre dans une matière
 }
 
-async function loadCourses(subject) {
+function learnGoBack() {
+  if (learnStep === 'lesson') {
+    learnStep = 'list';
+    document.getElementById('learn-course-detail').classList.add('hidden');
+    document.getElementById('learn-courses-list').classList.remove('hidden');
+    const names = { francais: 'Français', anglais: 'Anglais', maths: 'Mathématiques' };
+    document.getElementById('learn-title').textContent = names[currentSubject];
+  } else if (learnStep === 'exercises') {
+    // On ne revient pas en arrière pendant les exercices, on va à l'accueil
+    showSection('home');
+  } else {
+    showSection('home');
+  }
+}
+
+async function loadLearnCourses(subject) {
   try {
     const res = await fetch(`/api/courses?subject=${subject}&level=${currentUser.classe}`);
     const courses = await res.json();
-    const list = document.getElementById('courses-list');
+    const list = document.getElementById('learn-courses-list');
 
     if (courses.length === 0) {
       list.innerHTML = `
         <div class="exercise-card">
-          <p>Pas encore de cours disponibles pour cette matière.</p>
+          <p>Pas encore de leçons disponibles pour cette matière.</p>
           <p>Utilise l'assistant pour poser tes questions ! 💬</p>
           <button class="btn-primary" onclick="showSection('chat')">Aller au chat</button>
         </div>
@@ -781,7 +779,7 @@ async function loadCourses(subject) {
       const statusIcon = c.progress?.status === 'completed' ? '✅' :
                          c.progress?.status === 'in_progress' ? '📖' : '📘';
       return `
-        <div class="course-item animate-in" onclick="showCourse(${c.id})" style="animation-delay: ${i * 0.05}s">
+        <div class="course-item animate-in" onclick="learnShowCourse(${c.id})" style="animation-delay: ${i * 0.05}s">
           <span class="course-number">${i + 1}</span>
           <div class="course-info">
             <h3>${c.title}</h3>
@@ -792,21 +790,25 @@ async function loadCourses(subject) {
       `;
     }).join('');
 
-    document.getElementById('course-detail').classList.add('hidden');
-    document.getElementById('courses-list').classList.remove('hidden');
+    document.getElementById('learn-course-detail').classList.add('hidden');
+    document.getElementById('learn-exercises').classList.add('hidden');
+    document.getElementById('learn-complete').classList.add('hidden');
+    list.classList.remove('hidden');
   } catch (e) {
     console.error('Erreur cours:', e);
   }
 }
 
-async function showCourse(courseId) {
+async function learnShowCourse(courseId) {
   try {
     const res = await fetch(`/api/courses/${courseId}`);
     const course = await res.json();
 
-    document.getElementById('courses-list').classList.add('hidden');
-    document.getElementById('course-detail').classList.remove('hidden');
-    document.getElementById('course-content').innerHTML = `
+    learnStep = 'lesson';
+    document.getElementById('learn-title').textContent = course.title;
+    document.getElementById('learn-courses-list').classList.add('hidden');
+    document.getElementById('learn-course-detail').classList.remove('hidden');
+    document.getElementById('learn-course-content').innerHTML = `
       <h2>${course.title}</h2>
       <div class="course-body">${course.content}</div>
     `;
@@ -815,13 +817,11 @@ async function showCourse(courseId) {
   }
 }
 
-function hideCourseDetail() {
-  document.getElementById('course-detail').classList.add('hidden');
-  document.getElementById('courses-list').classList.remove('hidden');
-}
-
-function startExercisesForCourse() {
-  showSection('exercises');
+function learnStartExercises() {
+  learnStep = 'exercises';
+  document.getElementById('learn-title').textContent = 'Exercices';
+  document.getElementById('learn-course-detail').classList.add('hidden');
+  document.getElementById('learn-exercises').classList.remove('hidden');
   loadExercises();
 }
 
@@ -968,62 +968,50 @@ async function validateAnswer() {
   }
 }
 
-function getCorrectMessage() {
-  const messages = {
-    promoteur: [
-      '🏆 Goal ! Bien joué !', '⚽ Quel tir ! Parfait !', '💪 Champion !', '🎯 En plein dans le mille !',
-      '🥇 Tu es une machine ! Inarrêtable !', '🔥 En feu ! Tu enchaines les victoires !',
-      '⭐ MVP du jour ! Quelle classe !', '🎉 BOOOOM ! Réponse parfaite !',
-      '💯 Ton père va être tellement fier de toi !', '🚀 Tu décolles ! Rien ne t\'arrête !'
-    ],
-    rebelle: [
-      '😎 Trop bien !', '✌️ Stylé, bonne réponse !', '🎸 Tu gères grave !', '👏 Nice !',
-      '🔥 Trop fort, franchement respect !', '💫 T\'as tout compris, c\'est beau !',
-      '🎤 Mic drop ! Réponse parfaite !', '😏 Easy, hein ? T\'es trop balèze !',
-      '🤩 Wahou ! T\'as assuré comme un pro !', '✨ Classe ! Tu fais ça trop bien !'
-    ],
-    imagineur: [
-      '✨ Magnifique !', '🎨 Brillant, comme une oeuvre d\'art !', '🐉 Victoire héroïque !', '🌟 Légendaire !',
-      '⚔️ Le sort a parfaitement fonctionné, mage !', '🏰 Tu viens de conquérir un nouveau territoire !',
-      '🦅 Ton savoir s\'envole vers les étoiles !', '🌈 Réponse arc-en-ciel de génie !',
-      '👑 Le roi du savoir, c\'est toi !', '🎭 Quelle maîtrise ! Tu es un artiste !'
-    ],
-    entrepreneur: [
-      '💼 Excellent ! Compétence acquise !', '🚀 Parfait, vous progressez vite !', '📊 Bonne réponse, bravo !',
-      '🎯 En plein dans le mille !', '💡 Exactement ! Votre expertise grandit !', '✅ Validé ! Continuez comme ça !'
-    ]
+function getPersonalMessage(name, type) {
+  const msgs = {
+    'Ilan': {
+      perfect: [`Score parfait Ilan ! Tu es un CHAMPION ! 🏆🔥`, `100% !! Ilan, GOAL GOAL GOAL ! 🥅⚽🌟`, `Sans faute ! Même Mbappé serait impressionné ! 💪`],
+      great: [`Excellent Ilan ! Tu es sur la voie du champion ! 🌟`, `Bravo Ilan ! Continue comme ça, tu vas tout déchirer ! 🔥`, `Trop fort ! Tu progresses à vitesse grand V ! 🚀`],
+      good: [`Bien joué Ilan ! Tu progresses et c'est ça qui compte ! 💪`, `Bravo ! Chaque exercice te rend plus fort ! 🎯`, `C'est bien Ilan ! Ne lâche rien ! ⚽`],
+      encourage: [`Continue Ilan, les meilleurs joueurs s'entraînent ! 💪`, `C'est en s'entraînant qu'on devient champion ! 🔥`, `Hey Ilan, t'as essayé et c'est déjà super ! 💫`]
+    },
+    'Sacha': {
+      perfect: [`Score parfait Sacha ! T'es un GÉNIE ! 🌟✨`, `100% !! Sacha, trop stylé ! 😎🔥`, `Sans faute ! Franchement respect ! 🤩`],
+      great: [`Excellent Sacha ! T'assures grave ! 😎`, `Bravo Sacha ! C'est vraiment impressionnant ! ✌️`, `Trop fort ! Continue comme ça ! 🎸`],
+      good: [`Bien joué Sacha ! Tu gères ! 😎`, `Bravo ! Tu progresses et c'est cool ! ✌️`, `C'est bien ! T'es sur la bonne voie ! 🎸`],
+      encourage: [`Pas de stress Sacha, ça va venir ! 😌`, `Hey, tu t'améliores à chaque fois ! ✌️`, `T'as essayé et c'est déjà super courageux ! 💫`]
+    },
+    'Adan': {
+      perfect: [`Score parfait Adan ! Tu es LÉGENDAIRE ! ⚔️🌟`, `100% !! Le grand mage a parlé ! 🧙‍♂️✨`, `Sans faute ! Victoire épique ! 🐉👑`],
+      great: [`Excellent Adan ! Une quête héroïque ! 🗡️`, `Bravo Adan ! Tu as conquis le savoir ! 🏰`, `Ton sort de connaissance est puissant ! ✨`],
+      good: [`Bien joué Adan ! Chaque combat te rend plus fort ! ⚔️`, `Bravo ! L'aventure continue ! 🐉`, `C'est bien ! Le héros progresse ! 🌟`],
+      encourage: [`Continue Adan, même les héros échouent avant de triompher ! 🛡️`, `Le dragon était coriace ! Mais tu deviens plus fort ! 🐉`, `Nouvelle quête, nouvelle chance de briller ! ✨`]
+    }
   };
-  const pool = messages[currentUser.profile_type] || messages.promoteur;
+  const pool = msgs[name]?.[type] || [`Bravo ${name} ! Continue comme ça ! 🌟`];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function getCorrectMessage() {
+  const name = currentUser?.name;
+  const messages = {
+    'Ilan': ['🏆 Goal ! Bien joué !', '⚽ Quel tir ! Parfait !', '💪 Champion !', '🎯 En plein dans le mille !', '🥇 Inarrêtable !', '🔥 En feu !'],
+    'Sacha': ['😎 Trop bien !', '✌️ Stylé !', '🎸 Tu gères grave !', '👏 Nice !', '🔥 Respect !', '🤩 T\'assures !'],
+    'Adan': ['✨ Magnifique !', '🎨 Brillant !', '🐉 Victoire héroïque !', '⚔️ Sort réussi, mage !', '🏰 Territoire conquis !', '👑 Légendaire !']
+  };
+  const pool = messages[name] || ['🌟 Bravo !', '✅ Correct !', '👏 Bien joué !'];
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function getIncorrectMessage() {
+  const name = currentUser?.name;
   const messages = {
-    promoteur: [
-      'Pas grave, on se relève ! 💪', 'Prochaine fois, tu marques ! ⚽', 'C\'est qu\'un essai, tu vas y arriver ! 🎯',
-      'Les meilleurs joueurs ratent aussi des penalties ! Tu vas scorer au prochain ! 🥅',
-      'C\'est comme ça qu\'on progresse, champion ! La prochaine est pour toi ! 🏆',
-      'Même Mbappé rate parfois. Allez, on repart ! ⚡'
-    ],
-    rebelle: [
-      'Pas de stress, ça arrive 😌', 'T\'inquiète, essaie encore ✌️', 'C\'est pas grave du tout 🤷',
-      'Relax, t\'es en train d\'apprendre et c\'est ça qui compte 🎸',
-      'Eh, personne n\'est parfait ! T\'es sur la bonne voie 😎',
-      'Pas de panique, tu vas déchirer la prochaine ! 🤙'
-    ],
-    imagineur: [
-      'Chaque erreur est un apprentissage ✨', 'Le héros apprend de ses échecs 🛡️', 'Prochaine quête, tu réussiras ! 🗡️',
-      'Même les plus grands sorciers ratent des sorts au début ! 🧙‍♂️',
-      'C\'est un nouveau chapitre de ton aventure. La suite sera meilleure ! 📖',
-      'Le dragon était coriace ! Mais tu deviens plus fort à chaque combat ! 🐉'
-    ],
-    entrepreneur: [
-      'Pas de souci, c\'est en se trompant qu\'on apprend 💡', 'Chaque erreur est une leçon business 📈',
-      'On rectifie et on avance ! 🚀', 'Pas grave, l\'important c\'est la progression 💪',
-      'Les meilleurs dirigeants apprennent de leurs erreurs ! 💼', 'On note et on continue ! 📝'
-    ]
+    'Ilan': ['Pas grave, on se relève ! 💪', 'Prochaine fois, tu marques ! ⚽', 'Même les pros ratent ! 🎯', 'Allez, on repart ! ⚡'],
+    'Sacha': ['Pas de stress, ça arrive 😌', 'T\'inquiète, essaie encore ✌️', 'Relax, tu vas déchirer la prochaine ! 🤙', 'Personne n\'est parfait 😎'],
+    'Adan': ['Le héros apprend de ses échecs 🛡️', 'Prochaine quête, tu réussiras ! 🗡️', 'Le dragon était coriace ! 🐉', 'Même les mages ratent des sorts ! 🧙‍♂️']
   };
-  const pool = messages[currentUser.profile_type] || messages.promoteur;
+  const pool = messages[name] || ['Pas grave, on continue ! 💪', 'Ça arrive, essaie encore ! 🎯'];
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -1032,44 +1020,26 @@ function nextExercise() {
   currentExerciseIndex++;
 
   if (currentExerciseIndex >= currentExercises.length) {
-    // Série terminée
-    document.getElementById('exercise-container').classList.add('hidden');
+    // Série terminée - afficher résultats + vidéos récompense
+    learnStep = 'complete';
+    document.getElementById('learn-exercises').classList.add('hidden');
     document.getElementById('exercise-result').classList.add('hidden');
-    document.getElementById('exercise-complete').classList.remove('hidden');
+    document.getElementById('learn-complete').classList.remove('hidden');
+    pauseTimer(); // Pause le timer après les exercices
 
     const total = currentExercises.length;
     const rate = Math.round((exerciseScore / total) * 100);
+    const name = currentUser?.name || '';
 
     let message = '';
-    const name = currentUser?.name || '';
     if (rate === 100) {
-      const perfects = [
-        `Score parfait ${name} ! Tu es une LÉGENDE ! 🌟🌟🌟`,
-        `100% !! ${name}, tu es absolument INCROYABLE ! 🏆🔥`,
-        `Sans faute ! ${name}, ton père va être trop fier ! 🌟💪`
-      ];
-      message = perfects[Math.floor(Math.random() * perfects.length)];
+      message = getPersonalMessage(name, 'perfect');
     } else if (rate >= 80) {
-      const greats = [
-        `Excellent ${name} ! Tu as presque tout bon ! Tu es sur la voie du champion ! 🌟🌟`,
-        `Bravo ${name} ! C'est vraiment impressionnant ! Continue comme ça ! 💫🎉`,
-        `Trop fort ${name} ! Tu progresses à vitesse grand V ! 🚀`
-      ];
-      message = greats[Math.floor(Math.random() * greats.length)];
+      message = getPersonalMessage(name, 'great');
     } else if (rate >= 60) {
-      const goods = [
-        `Bien joué ${name} ! Tu progresses et c'est ça le plus important ! 🌟`,
-        `Bravo ${name} ! Chaque exercice te rend plus fort ! Continue ! 💪`,
-        `C'est bien ${name} ! Tu es sur le bon chemin, ne lâche rien ! 🎯`
-      ];
-      message = goods[Math.floor(Math.random() * goods.length)];
+      message = getPersonalMessage(name, 'good');
     } else {
-      const encourages = [
-        `Continue ${name}, tu vas y arriver ! Chaque effort compte ! 💪🌱`,
-        `C'est en s'entraînant qu'on devient champion ${name} ! Reviens demain encore plus fort ! 🔥`,
-        `Hey ${name}, t'as essayé et c'est déjà super courageux ! On recommence ? 💫`
-      ];
-      message = encourages[Math.floor(Math.random() * encourages.length)];
+      message = getPersonalMessage(name, 'encourage');
     }
 
     document.getElementById('exercise-summary').innerHTML = `
@@ -1078,10 +1048,64 @@ function nextExercise() {
     `;
 
     document.getElementById('exercise-progress-fill').style.width = '100%';
+
+    // Charger les vidéos récompense
+    loadRewardVideos();
     return;
   }
 
   showExercise();
+}
+
+function loadRewardVideos() {
+  const videoContainer = document.getElementById('learn-videos-reward');
+  if (!videoContainer) return;
+
+  const videos = getPersonalVideos();
+  if (videos.length === 0) {
+    videoContainer.innerHTML = '';
+    return;
+  }
+
+  videoContainer.innerHTML = `
+    <h3 style="margin-top: 1.5rem;">🎥 Tes vidéos récompense !</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Tu as bien travaillé, voici des vidéos rien que pour toi !</p>
+    <div class="videos-grid">
+      ${videos.slice(0, 2).map(v => `
+        <a href="${v.url}" target="_blank" class="video-card">
+          <span class="video-icon">🎬</span>
+          <span class="video-title">${v.title}</span>
+        </a>
+      `).join('')}
+    </div>
+  `;
+}
+
+function getPersonalVideos() {
+  const name = currentUser?.name;
+  const videosMap = {
+    'Ilan': [
+      { title: 'Les maths du football', url: 'https://www.youtube.com/watch?v=math-football' },
+      { title: 'Les langues dans le sport pro', url: 'https://www.youtube.com/watch?v=sport-langues' },
+      { title: 'La géopolitique du foot', url: 'https://www.youtube.com/watch?v=geopolitique-foot' }
+    ],
+    'Sacha': [
+      { title: 'Les maths dans la musique', url: 'https://www.youtube.com/watch?v=math-musique' },
+      { title: 'Créer son premier film', url: 'https://www.youtube.com/watch?v=creer-film' },
+      { title: 'L\'art du storytelling', url: 'https://www.youtube.com/watch?v=storytelling' }
+    ],
+    'Adan': [
+      { title: 'Peindre des figurines Warhammer', url: 'https://www.youtube.com/watch?v=paint-warhammer' },
+      { title: 'Les maths des jeux de stratégie', url: 'https://www.youtube.com/watch?v=math-strategie' },
+      { title: 'Créer un monde imaginaire', url: 'https://www.youtube.com/watch?v=monde-imaginaire' }
+    ]
+  };
+  // Ajouter vidéo basée sur la passion du jour
+  const videos = videosMap[name] || [];
+  if (todayPassion) {
+    videos.unshift({ title: `En savoir plus sur : ${todayPassion}`, url: `https://www.youtube.com/results?search_query=${encodeURIComponent(todayPassion + ' pour enfants')}` });
+  }
+  return videos;
 }
 
 // ==================
@@ -1219,32 +1243,29 @@ function showWarmthQuestion() {
   warmthQuestionShown = true;
 
   const questions = {
-    promoteur: [
+    'Ilan': [
       { q: 'Comment tu te sens aujourd\'hui, champion ? ⚽', r1: 'Au top !', r2: 'Bof...' },
-      { q: 'T\'es fier de toi aujourd\'hui ? Moi je trouve que tu geres ! 💪', r1: 'Carrément !', r2: 'Mouais' },
-      { q: 'Tu veux un petit defi special ? 🎯', r1: 'Oui !', r2: 'Plus tard' },
-      { q: 'C\'est quoi ta matiere preferee en ce moment ?', r1: 'Je te dis !', r2: 'Secret !' }
+      { q: 'T\'es fier de toi ? Moi je trouve que tu gères ! 💪', r1: 'Carrément !', r2: 'Mouais' },
+      { q: 'Tu veux un petit défi spécial ? 🎯', r1: 'Oui !', r2: 'Plus tard' },
+      { q: 'C\'est quoi ta matière préférée en ce moment ?', r1: 'Je te dis !', r2: 'Secret !' }
     ],
-    rebelle: [
+    'Sacha': [
       { q: 'Ça va toi ? Pas trop la flemme ? 😎', r1: 'Ça va !', r2: 'Un peu...' },
       { q: 'T\'as envie de continuer ou tu veux faire une pause ? ✌️', r1: 'Je continue', r2: 'Pause !' },
-      { q: 'C\'est cool que tu sois la ! Tu veux changer de matiere ?', r1: 'Oui pourquoi pas', r2: 'Non c\'est bien' },
-      { q: 'Hey, raconte un truc marrant qui t\'est arrive cette semaine ?', r1: 'Haha oui !', r2: 'Rien de ouf' }
+      { q: 'C\'est cool que tu sois là ! Tu veux changer de matière ?', r1: 'Oui pourquoi pas', r2: 'Non c\'est bien' },
+      { q: 'Hey, raconte un truc marrant qui t\'est arrivé cette semaine ?', r1: 'Haha oui !', r2: 'Rien de ouf' }
     ],
-    imagineur: [
+    'Adan': [
       { q: 'Si les maths étaient un personnage de Warhammer, ce serait qui ? 🐉', r1: 'Un mage !', r2: 'Un guerrier !' },
-      { q: 'Tu te sens plutot createur ou explorateur aujourd\'hui ? ✨', r1: 'Créateur', r2: 'Explorateur' },
-      { q: 'Imagine que chaque exercice est un sort a lancer... Tu es pret, sorcier ? 🗡️', r1: 'Oui !', r2: 'Presque...' },
-      { q: 'Si tu pouvais inventer une matiere a l\'ecole, ce serait quoi ?', r1: 'Dis-moi !', r2: 'Hmm...' }
-    ],
-    entrepreneur: [
-      { q: 'Comment avance votre formation aujourd\'hui ? 💼', r1: 'Bien !', r2: 'Doucement' },
-      { q: 'Un module d\'anglais textile ou d\'IA ? 🚀', r1: 'Anglais', r2: 'IA' },
-      { q: 'Prêt pour le prochain module ? 📚', r1: 'Oui !', r2: 'Pause' }
+      { q: 'Tu te sens plutôt créateur ou explorateur aujourd\'hui ? ✨', r1: 'Créateur', r2: 'Explorateur' },
+      { q: 'Imagine que chaque exercice est un sort à lancer... Tu es prêt, sorcier ? 🗡️', r1: 'Oui !', r2: 'Presque...' },
+      { q: 'Si tu pouvais inventer une matière à l\'école, ce serait quoi ?', r1: 'Dis-moi !', r2: 'Hmm...' }
     ]
   };
 
-  const pool = questions[currentUser.profile_type] || questions.promoteur;
+  const pool = questions[currentUser.name] || [
+    { q: 'Comment ça va ? 😊', r1: 'Bien !', r2: 'Bof...' }
+  ];
   const question = pool[Math.floor(Math.random() * pool.length)];
 
   const toast = document.createElement('div');
