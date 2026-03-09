@@ -4,8 +4,11 @@
  */
 
 function seedContent(db) {
-  const courseCount = db.prepare('SELECT COUNT(*) as count FROM courses').get();
-  if (courseCount.count > 0) return;
+  const exerciseCount = db.prepare('SELECT COUNT(*) as count FROM exercises').get();
+  if (exerciseCount.count > 0) return; // Déjà peuplé
+
+  // Nettoyer les cours existants s'il n'y a pas d'exercices
+  db.prepare('DELETE FROM courses').run();
 
   const insertCourse = db.prepare(`
     INSERT INTO courses (subject, title, content, level, difficulty, order_index, tags)
