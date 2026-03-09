@@ -5,6 +5,7 @@ const SQLiteStore = require('connect-sqlite3')(session);
 const path = require('path');
 const { initDatabase } = require('./database/init');
 const { seedContent } = require('./database/seed-content');
+const { seedLearningPaths } = require('./database/seed-learning');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +13,7 @@ const PORT = process.env.PORT || 3000;
 // Initialiser la base de données et charger le contenu
 const db = initDatabase();
 seedContent(db);
+seedLearningPaths(db);
 app.locals.db = db;
 
 // Middleware
@@ -36,6 +38,7 @@ app.use('/api/chat', require('./routes/chat'));
 app.use('/api/parent', require('./routes/parent'));
 app.use('/api/progress', require('./routes/progress'));
 app.use('/api/daily-mood', require('./routes/daily-mood'));
+app.use('/api/learning', require('./routes/learning'));
 
 // SPA fallback
 app.get('*', (req, res) => {

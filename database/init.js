@@ -131,6 +131,48 @@ function initDatabase() {
       UNIQUE(user_id, subject, skill)
     );
 
+    CREATE TABLE IF NOT EXISTS learning_paths (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      slug TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      icon TEXT DEFAULT '📚',
+      total_modules INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, slug)
+    );
+
+    CREATE TABLE IF NOT EXISTS audio_lessons (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      path_id INTEGER NOT NULL,
+      module_number INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      subtitle TEXT,
+      content_text TEXT NOT NULL,
+      key_points TEXT DEFAULT '[]',
+      vocabulary TEXT DEFAULT '[]',
+      quiz_questions TEXT DEFAULT '[]',
+      duration_estimate INTEGER DEFAULT 10,
+      order_index INTEGER DEFAULT 0,
+      FOREIGN KEY (path_id) REFERENCES learning_paths(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS learning_progress (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      lesson_id INTEGER NOT NULL,
+      status TEXT DEFAULT 'not_started',
+      listened_count INTEGER DEFAULT 0,
+      quiz_score INTEGER,
+      notes TEXT,
+      completed_at DATETIME,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (lesson_id) REFERENCES audio_lessons(id),
+      UNIQUE(user_id, lesson_id)
+    );
+
     CREATE TABLE IF NOT EXISTS daily_mood (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,

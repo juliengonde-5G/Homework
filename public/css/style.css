@@ -1800,6 +1800,442 @@ body {
   }
 }
 
+/* ==================
+   LEARNING PATHS
+   ================== */
+.learning-paths-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.learning-path-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-left: 5px solid var(--primary);
+}
+
+.learning-path-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.learning-path-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.learning-path-card p {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.learning-path-progress {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.learning-path-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.learning-path-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+}
+
+.lessons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.lesson-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  background: white;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lesson-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.lesson-item.completed {
+  border-left: 4px solid var(--success);
+  opacity: 0.85;
+}
+
+.lesson-item.in_progress {
+  border-left: 4px solid var(--primary);
+}
+
+.lesson-number {
+  background: var(--primary);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.lesson-item.completed .lesson-number {
+  background: var(--success);
+}
+
+.lesson-info h4 {
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.lesson-info span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.lesson-duration {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ==================
+   AUDIO PLAYER (mode conduite)
+   ================== */
+.audio-player-content {
+  max-width: 500px;
+  text-align: center;
+}
+
+.audio-player-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.audio-lesson-tag {
+  background: var(--primary);
+  color: white;
+  padding: 0.2rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.audio-lesson-title {
+  font-size: 1.3rem;
+  margin-bottom: 0.3rem;
+  color: var(--primary);
+}
+
+.audio-lesson-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 1.5rem;
+}
+
+.audio-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.audio-btn {
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.audio-btn-main {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+  padding: 1.2rem 2.5rem;
+  font-size: 1.2rem;
+  border-radius: 30px;
+}
+
+.audio-btn-main:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-hover);
+}
+
+.audio-btn-main.playing {
+  background: linear-gradient(135deg, var(--danger), #FAB1A0);
+}
+
+.audio-btn-secondary {
+  background: var(--bg);
+  color: var(--text-light);
+  padding: 0.8rem 1rem;
+  font-size: 0.9rem;
+}
+
+.audio-btn-secondary:hover {
+  background: var(--border);
+}
+
+.audio-speed-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.audio-speed-btn {
+  padding: 0.3rem 0.6rem;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  background: white;
+  font-family: var(--font);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.audio-speed-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.audio-text-container {
+  max-height: 300px;
+  overflow-y: auto;
+  text-align: left;
+  padding: 1rem;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.audio-vocab {
+  text-align: left;
+  padding: 1rem;
+  background: #EBF5FB;
+  border-radius: var(--radius-sm);
+  margin: 0.5rem 0;
+}
+
+.audio-vocab-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-size: 0.85rem;
+}
+
+.audio-vocab-item .en {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.audio-vocab-item .fr {
+  color: var(--text-light);
+}
+
+.audio-keypoints {
+  text-align: left;
+  padding: 1rem;
+  background: #FFF9E6;
+  border-radius: var(--radius-sm);
+  margin: 0.5rem 0;
+}
+
+.audio-keypoints li {
+  margin-bottom: 0.3rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.audio-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .learning-paths-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audio-btn-main {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+  }
+
+  .audio-controls {
+    gap: 0.5rem;
+  }
+}
+
+/* Learning path card layout */
+.learning-path-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.learning-path-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.learning-path-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.learning-path-info h4 {
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.learning-path-desc {
+  font-size: 0.82rem;
+  color: var(--text-light);
+  margin-bottom: 0.6rem;
+  line-height: 1.4;
+}
+
+.learning-path-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.learning-path-progress-bar {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.learning-path-progress-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.learning-path-arrow {
+  font-size: 1.3rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Lesson item details */
+.lesson-status {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.lesson-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.lesson-title {
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.lesson-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.lesson-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+.lesson-score {
+  font-size: 0.75rem;
+  color: var(--success);
+  font-weight: 700;
+}
+
+/* Vocab & keypoints in audio player */
+.vocab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.vocab-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-size: 0.85rem;
+}
+
+.vocab-term {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.vocab-def {
+  color: var(--text-light);
+}
+
+.keypoints-list {
+  padding-left: 1.2rem;
+  margin: 0;
+}
+
+.keypoints-list li {
+  margin-bottom: 0.3rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 .hidden {
   display: none !important;
 }

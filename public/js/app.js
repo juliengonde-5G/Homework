@@ -1455,3 +1455,322 @@ async function viewChatHistory(userId, name) {
     console.error('Erreur historique chat:', e);
   }
 }
+
+// ==================
+// PARCOURS D'APPRENTISSAGE (Parent - Audio)
+// ==================
+let currentAudioLesson = null;
+let speechUtterance = null;
+let speechPlaying = false;
+let audioSpeed = 1;
+let audioCharIndex = 0;
+
+function showParentTab(tab) {
+  const contentEl = document.getElementById('parent-content');
+  const learningEl = document.getElementById('parent-learning');
+  const tabDashboard = document.getElementById('tab-dashboard');
+  const tabLearning = document.getElementById('tab-learning');
+
+  if (tab === 'learning') {
+    contentEl.classList.add('hidden');
+    learningEl.classList.remove('hidden');
+    tabDashboard.className = 'btn-secondary';
+    tabLearning.className = 'btn-primary';
+    loadLearningPaths();
+  } else {
+    contentEl.classList.remove('hidden');
+    learningEl.classList.add('hidden');
+    tabDashboard.className = 'btn-primary';
+    tabLearning.className = 'btn-secondary';
+  }
+}
+
+async function loadLearningPaths() {
+  const container = document.getElementById('parent-learning');
+  container.innerHTML = '<p style="text-align:center; padding:2rem;">Chargement...</p>';
+
+  try {
+    const res = await fetch('/api/learning/paths');
+    const paths = await res.json();
+
+    if (paths.length === 0) {
+      container.innerHTML = '<p style="text-align:center; padding:2rem; color:var(--text-muted);">Aucun parcours disponible.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <h3 style="margin-bottom: 1rem;">🎧 Mes Parcours Audio</h3>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+        Conçus pour vos trajets en voiture - écoutez, apprenez, progressez.
+      </p>
+      <div class="learning-paths-grid">
+        ${paths.map(p => `
+          <div class="learning-path-card" onclick="openLearningPath('${p.slug}')">
+            <div class="learning-path-icon">${p.icon}</div>
+            <div class="learning-path-info">
+              <h4>${p.title}</h4>
+              <p class="learning-path-desc">${p.description || ''}</p>
+              <div class="learning-path-progress">
+                <div class="learning-path-progress-bar">
+                  <div class="learning-path-progress-fill" style="width: ${p.progress || 0}%"></div>
+                </div>
+                <span class="learning-path-progress-text">${p.completedLessons || 0} / ${p.totalLessons || p.total_modules} modules</span>
+              </div>
+            </div>
+            <span class="learning-path-arrow">→</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    console.error('Erreur chargement parcours:', e);
+    container.innerHTML = '<p style="text-align:center; color:#E17055; padding:2rem;">Erreur de chargement</p>';
+  }
+}
+
+async function openLearningPath(slug) {
+  const container = document.getElementById('parent-learning');
+  container.innerHTML = '<p style="text-align:center; padding:2rem;">Chargement...</p>';
+
+  try {
+    const res = await fetch(`/api/learning/path/${slug}`);
+    const data = await res.json();
+
+    container.innerHTML = `
+      <button class="btn-back" onclick="loadLearningPaths()" style="margin-bottom: 1rem;">← Retour aux parcours</button>
+      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+        <span style="font-size: 2.5rem;">${data.path.icon}</span>
+        <div>
+          <h3 style="margin: 0;">${data.path.title}</h3>
+          <p style="color: var(--text-muted); margin: 0.3rem 0 0; font-size: 0.9rem;">${data.path.description || ''}</p>
+        </div>
+      </div>
+      <div class="lessons-list">
+        ${data.lessons.map((lesson, i) => {
+          const status = lesson.status || 'not_started';
+          const statusIcon = status === 'completed' ? '✅' : status === 'in_progress' ? '🔄' : '⬜';
+          const statusClass = status === 'completed' ? 'completed' : status === 'in_progress' ? 'in_progress' : '';
+          return `
+            <div class="lesson-item ${statusClass}" onclick='openAudioLesson(${JSON.stringify(lesson).replace(/'/g, "&#39;")})'>
+              <span class="lesson-status">${statusIcon}</span>
+              <div class="lesson-info">
+                <span class="lesson-number">Module ${lesson.module_number}</span>
+                <h4 class="lesson-title">${lesson.title}</h4>
+                <p class="lesson-subtitle">${lesson.subtitle || ''}</p>
+              </div>
+              <div class="lesson-meta">
+                <span class="lesson-duration">~${lesson.duration_estimate || 10} min</span>
+                ${lesson.quiz_score != null ? `<span class="lesson-score">Quiz: ${lesson.quiz_score}%</span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  } catch (e) {
+    console.error('Erreur chargement parcours:', e);
+    container.innerHTML = '<p style="text-align:center; color:#E17055; padding:2rem;">Erreur de chargement</p>';
+  }
+}
+
+function openAudioLesson(lesson) {
+  currentAudioLesson = lesson;
+  stopSpeech();
+
+  document.getElementById('audio-lesson-number').textContent = `Module ${lesson.module_number}`;
+  document.getElementById('audio-lesson-title').textContent = lesson.title;
+  document.getElementById('audio-lesson-subtitle').textContent = lesson.subtitle || '';
+  document.getElementById('audio-text-content').textContent = lesson.content_text || '';
+  document.getElementById('audio-play-btn').textContent = '▶️ Écouter';
+
+  // Vocabulaire
+  const vocabEl = document.getElementById('audio-vocab');
+  try {
+    const vocab = typeof lesson.vocabulary === 'string' ? JSON.parse(lesson.vocabulary) : (lesson.vocabulary || []);
+    if (vocab.length > 0) {
+      vocabEl.innerHTML = `
+        <h4>📖 Vocabulaire</h4>
+        <div class="vocab-list">
+          ${vocab.map(v => `
+            <div class="vocab-item">
+              <span class="vocab-term">${v.en || v.term || ''}</span>
+              <span class="vocab-def">${v.fr || v.definition || ''}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } else {
+      vocabEl.innerHTML = '';
+    }
+  } catch (e) { vocabEl.innerHTML = ''; }
+
+  // Points clés
+  const keypointsEl = document.getElementById('audio-keypoints');
+  try {
+    const kp = typeof lesson.key_points === 'string' ? JSON.parse(lesson.key_points) : (lesson.key_points || []);
+    if (kp.length > 0) {
+      keypointsEl.innerHTML = `
+        <h4>🎯 Points clés</h4>
+        <ul class="keypoints-list">
+          ${kp.map(p => `<li>${p}</li>`).join('')}
+        </ul>
+      `;
+    } else {
+      keypointsEl.innerHTML = '';
+    }
+  } catch (e) { keypointsEl.innerHTML = ''; }
+
+  // Reset visibility
+  document.getElementById('audio-text-container').style.display = 'none';
+  vocabEl.classList.add('hidden');
+  keypointsEl.classList.add('hidden');
+
+  // Reset speed buttons
+  document.querySelectorAll('.audio-speed-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelector('.audio-speed-btn[onclick="setAudioSpeed(1)"]').classList.add('active');
+  audioSpeed = 1;
+
+  document.getElementById('audio-player-modal').classList.remove('hidden');
+
+  // Mark as in_progress
+  updateLessonProgress('in_progress');
+}
+
+function toggleAudioPlay() {
+  if (speechPlaying) {
+    stopSpeech();
+    document.getElementById('audio-play-btn').textContent = '▶️ Reprendre';
+  } else {
+    startSpeech();
+    document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
+  }
+}
+
+function startSpeech() {
+  if (!currentAudioLesson) return;
+  if (!('speechSynthesis' in window)) {
+    alert('La synthèse vocale n\'est pas disponible sur ce navigateur.');
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const text = currentAudioLesson.content_text || '';
+  speechUtterance = new SpeechSynthesisUtterance(text);
+  speechUtterance.lang = currentAudioLesson.title && currentAudioLesson.title.match(/english|anglais|business/i) ? 'en-US' : 'fr-FR';
+  speechUtterance.rate = audioSpeed;
+  speechUtterance.pitch = 1;
+
+  // Try to find a good voice
+  const voices = window.speechSynthesis.getVoices();
+  const preferredLang = speechUtterance.lang;
+  const voice = voices.find(v => v.lang === preferredLang && v.localService) ||
+                voices.find(v => v.lang.startsWith(preferredLang.split('-')[0])) ||
+                voices[0];
+  if (voice) speechUtterance.voice = voice;
+
+  speechUtterance.onend = () => {
+    speechPlaying = false;
+    document.getElementById('audio-play-btn').textContent = '🔄 Réécouter';
+  };
+
+  speechUtterance.onerror = (e) => {
+    if (e.error !== 'canceled') {
+      speechPlaying = false;
+      document.getElementById('audio-play-btn').textContent = '▶️ Écouter';
+    }
+  };
+
+  window.speechSynthesis.speak(speechUtterance);
+  speechPlaying = true;
+}
+
+function stopSpeech() {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+  speechPlaying = false;
+}
+
+function audioRewind() {
+  // Web Speech API doesn't support seeking, so restart
+  if (speechPlaying) {
+    stopSpeech();
+    startSpeech();
+  }
+}
+
+function audioForward() {
+  // Web Speech API doesn't support seeking - skip to end
+  stopSpeech();
+  document.getElementById('audio-play-btn').textContent = '▶️ Écouter';
+}
+
+function setAudioSpeed(rate) {
+  audioSpeed = rate;
+  document.querySelectorAll('.audio-speed-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  // If playing, restart with new speed
+  if (speechPlaying) {
+    stopSpeech();
+    startSpeech();
+    document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
+  }
+}
+
+function toggleAudioText() {
+  const el = document.getElementById('audio-text-container');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleAudioVocab() {
+  document.getElementById('audio-vocab').classList.toggle('hidden');
+}
+
+function toggleAudioKeypoints() {
+  document.getElementById('audio-keypoints').classList.toggle('hidden');
+}
+
+async function markLessonComplete() {
+  await updateLessonProgress('completed');
+  stopSpeech();
+  closeAudioPlayer();
+
+  // Refresh the path view
+  if (currentAudioLesson && currentAudioLesson.path_id) {
+    // Reload the current path
+    const container = document.getElementById('parent-learning');
+    const backBtn = container.querySelector('.btn-back');
+    if (backBtn) {
+      // Re-fetch the path
+      try {
+        const res = await fetch('/api/learning/paths');
+        const paths = await res.json();
+        const currentPath = paths.find(p => p.id === currentAudioLesson.path_id);
+        if (currentPath) openLearningPath(currentPath.slug);
+      } catch (e) {
+        loadLearningPaths();
+      }
+    }
+  }
+}
+
+async function updateLessonProgress(status) {
+  if (!currentAudioLesson) return;
+  try {
+    await fetch(`/api/learning/lesson/${currentAudioLesson.id}/progress`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+  } catch (e) {
+    console.error('Erreur mise à jour progression:', e);
+  }
+}
+
+function closeAudioPlayer() {
+  stopSpeech();
+  document.getElementById('audio-player-modal').classList.add('hidden');
+  currentAudioLesson = null;
+}
