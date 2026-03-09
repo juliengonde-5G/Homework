@@ -200,7 +200,7 @@ function initDatabase() {
       JSON.stringify(['football', 'géopolitique', 'compétition']), 45);
     insertUser.run('Sacha', '🎭', 11, '6ème', 'rebelle', 'creative', 1,
       JSON.stringify(['liberté', 'choix', 'expression']), 45);
-    insertUser.run('Adam', '🎨', 11, '6ème', 'imagineur', 'warhammer', 1,
+    insertUser.run('Adan', '🎨', 11, '6ème', 'imagineur', 'warhammer', 1,
       JSON.stringify(['warhammer', 'art', 'imagination', 'création']), 45);
 
     // Stats initiales pour chaque enfant et matière

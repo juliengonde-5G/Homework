@@ -47,5 +47,5 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🎓 Homework Buddy démarre sur http://localhost:${PORT}`);
-  console.log(`📚 Prêt à aider Ilan, Sacha et Adam !`);
+  console.log(`📚 Prêt à aider Ilan, Sacha et Adan !`);
 });

@@ -112,6 +112,11 @@
               <span class="subject-name">Maths</span>
               <div id="progress-maths" class="progress-mini"></div>
             </button>
+            <button class="subject-card subject-decouverte" onclick="openDecouverte()">
+              <span class="subject-icon">🔭</span>
+              <span class="subject-name">Découverte</span>
+              <span class="subject-hint">Explore ce que tu veux !</span>
+            </button>
           </div>
 
           <!-- Section vidéos personnalisées -->
@@ -154,6 +159,27 @@
             <p id="exercise-summary"></p>
             <button class="btn-primary" onclick="showSection('home')">Retour à l'accueil</button>
           </div>
+        </section>
+
+        <!-- Section Découverte libre -->
+        <section id="section-decouverte" class="section">
+          <div class="section-header">
+            <button class="btn-back" onclick="showSection('home')">← Retour</button>
+            <h2>🔭 Découverte libre</h2>
+          </div>
+          <div class="decouverte-intro">
+            <p class="decouverte-text">Tu veux comprendre comment quelque chose fonctionne ? Pose ta question et je t'explique !</p>
+            <div class="decouverte-suggestions" id="decouverte-suggestions"></div>
+          </div>
+          <div id="decouverte-messages" class="chat-messages">
+            <div class="chat-bubble assistant">
+              <p>Salut ! Ici c'est l'espace Découverte ! Tu peux me demander n'importe quoi : comment fonctionne la démocratie, comment faire un avion en papier, comment peindre une figurine... Qu'est-ce qui te fait envie ? 🌍</p>
+            </div>
+          </div>
+          <form id="decouverte-form" class="chat-input-area" onsubmit="sendDecouverteMessage(event)">
+            <input type="text" id="decouverte-input" placeholder="Qu'est-ce que tu veux découvrir ?" autocomplete="off">
+            <button type="submit" class="btn-send">Explorer 🚀</button>
+          </form>
         </section>
 
         <!-- Section Chat -->

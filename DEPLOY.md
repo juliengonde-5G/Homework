@@ -34,7 +34,7 @@ docker-compose up -d --build
 ## Comptes
 
 ### Enfants
-Les profils d'Ilan, Sacha et Adam sont pré-créés. Ils cliquent simplement sur leur avatar pour se connecter.
+Les profils d'Ilan, Sacha et Adan sont pré-créés. Ils cliquent simplement sur leur avatar pour se connecter.
 
 ### Parent
 Mot de passe par défaut : `papa2024` (modifiable dans le fichier .env)

@@ -108,6 +108,74 @@ router.post('/message', async (req, res) => {
   }
 });
 
+// POST /api/chat/decouverte - Découverte libre (exploration de sujets)
+router.post('/decouverte', async (req, res) => {
+  const db = req.app.locals.db;
+  const userId = req.session.userId;
+  if (!userId) return res.status(401).json({ error: 'Non connecté' });
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+  const { message } = req.body;
+  if (!message || message.trim().length === 0) {
+    return res.status(400).json({ error: 'Message vide' });
+  }
+
+  const interests = JSON.parse(user.interests || '[]');
+  const profileNotes = {
+    promoteur: `Utilise des métaphores sportives, des défis et de l'action.`,
+    rebelle: `Sois cool et décontracté. Utilise l'humour. Laisse-le libre.`,
+    imagineur: `Utilise des histoires, de l'imaginaire, des aventures épiques.`
+  };
+
+  const systemPrompt = `Tu es un guide de découverte passionné pour ${user.name}, ${user.age} ans.
+${user.is_dyslexic ? 'IMPORTANT: Cet enfant est dyslexique. Phrases courtes et simples.' : ''}
+${profileNotes[user.profile_type] || ''}
+
+RÈGLES:
+- Explique de manière claire, fun et adaptée à un enfant de ${user.age} ans.
+- Utilise des exemples concrets, des analogies amusantes.
+- Structure ta réponse avec des émojis et des paragraphes courts.
+- Si le sujet peut être relié aux matières scolaires (français, maths, anglais), fais le lien naturellement.
+- Encourage la curiosité ! Termine par une question qui donne envie d'en savoir plus.
+- Maximum 3-4 paragraphes.
+- Centres d'intérêt de l'enfant: ${interests.join(', ')}.`;
+
+  // Récupérer les derniers messages de découverte
+  const history = db.prepare(`
+    SELECT role, content FROM chat_history
+    WHERE user_id = ? AND subject = 'decouverte' ORDER BY created_at DESC LIMIT 10
+  `).all(userId).reverse();
+
+  // Sauvegarder le message
+  db.prepare('INSERT INTO chat_history (user_id, role, content, subject) VALUES (?, ?, ?, ?)')
+    .run(userId, 'user', message, 'decouverte');
+
+  const messages = [...history.map(h => ({
+    role: h.role === 'user' ? 'user' : 'assistant',
+    content: h.content
+  })), { role: 'user', content: message }];
+
+  try {
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages
+    });
+
+    const assistantMessage = response.content[0].text;
+    db.prepare('INSERT INTO chat_history (user_id, role, content, subject) VALUES (?, ?, ?, ?)')
+      .run(userId, 'assistant', assistantMessage, 'decouverte');
+
+    res.json({ message: assistantMessage });
+  } catch (error) {
+    console.error('Erreur Claude API (découverte):', error);
+    res.status(500).json({
+      message: 'Oups, j\'ai un petit souci. Réessaie dans un instant ! 🔧'
+    });
+  }
+});
+
 // GET /api/chat/history - Historique du chat
 router.get('/history', (req, res) => {
   const db = req.app.locals.db;

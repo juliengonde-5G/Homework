@@ -1,7 +1,7 @@
 {
   "name": "homework-buddy",
   "version": "1.0.0",
-  "description": "Application ludique d'aide aux devoirs pour Ilan, Sacha et Adam",
+  "description": "Application ludique d'aide aux devoirs pour Ilan, Sacha et Adan",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -32,7 +32,7 @@
   --theme-creative-secondary: #FAB1A0;
   --theme-creative-accent: #FDCB6E;
 
-  /* Thème Warhammer (Adam) */
+  /* Thème Warhammer (Adan) */
   --theme-warhammer-primary: #6C5CE7;
   --theme-warhammer-secondary: #A29BFE;
   --theme-warhammer-accent: #FD79A8;
@@ -2110,6 +2110,54 @@ body {
   .audio-controls {
     gap: 0.5rem;
   }
+}
+
+/* Découverte libre */
+.subject-decouverte {
+  background: linear-gradient(135deg, #A29BFE, #6C5CE7) !important;
+  color: white !important;
+}
+
+.subject-hint {
+  font-size: 0.7rem;
+  opacity: 0.85;
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.decouverte-intro {
+  padding: 1rem;
+  text-align: center;
+}
+
+.decouverte-text {
+  font-size: 1rem;
+  color: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.decouverte-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.decouverte-suggestion-btn {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  font-family: var(--font);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.decouverte-suggestion-btn:hover {
+  border-color: var(--primary);
+  background: var(--bg);
+  transform: translateY(-2px);
 }
 
 /* Learning path card layout */

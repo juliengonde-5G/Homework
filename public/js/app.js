@@ -191,22 +191,50 @@ function getMotivation() {
 // ==================
 // TIMER (header + floating)
 // ==================
+let timerRunning = false;
+
 function startTimer() {
   updateTimerDisplay();
+  // Le timer ne tourne que pendant les exercices - on le démarre/stoppe via showSection
+}
+
+function resumeTimer() {
+  if (timerRunning) return;
+  timerRunning = true;
   timerInterval = setInterval(() => {
     remainingMinutes -= 1 / 60;
     updateTimerDisplay();
 
     if (remainingMinutes <= 5) {
-      document.querySelector('.timer-display').classList.add('warning');
-      document.getElementById('floating-timer').classList.add('warning');
+      document.querySelector('.timer-display')?.classList.add('warning');
+      document.getElementById('floating-timer')?.classList.add('warning');
     }
 
     if (remainingMinutes <= 0) {
-      clearInterval(timerInterval);
-      document.getElementById('time-up-modal').classList.remove('hidden');
+      pauseTimer();
+      // Non bloquant : on affiche un message encourageant mais on laisse continuer
+      showFloatingBotMessage(
+        getTimerEndMessage(),
+        [{ text: 'Je continue un peu', action: () => { closeFloatingBubble(); } },
+         { text: 'OK, j\'arrête !', action: () => { closeFloatingBubble(); showSection('home'); } }]
+      );
     }
   }, 1000);
+}
+
+function pauseTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerRunning = false;
+}
+
+function getTimerEndMessage() {
+  const msgs = {
+    promoteur: ['Temps écoulé champion ! Tu as super bien bossé ! 🏆', 'Fin du match ! Quelle performance ! ⚽💪'],
+    rebelle: ['Hey, les 45 min sont passées ! T\'as bien géré 😎', 'Temps fini ! T\'as assuré, prends une pause ✌️'],
+    imagineur: ['La quête du jour est terminée, héros ! 🐉✨', 'Ton aventure a été épique aujourd\'hui ! 🌟']
+  };
+  const pool = msgs[currentUser?.profile_type] || msgs.promoteur;
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function updateTimerDisplay() {
@@ -314,14 +342,21 @@ function showSection(sectionId) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`.nav-btn[data-section="${sectionId}"]`)?.classList.add('active');
 
-  // Masquer/afficher le bot flottant (caché quand on est dans le chat)
+  // Masquer/afficher le bot flottant (caché quand on est dans le chat ou decouverte)
   const floatingBot = document.getElementById('floating-bot');
   if (floatingBot) {
-    if (sectionId === 'chat') {
+    if (sectionId === 'chat' || sectionId === 'decouverte') {
       floatingBot.classList.add('hidden');
     } else {
       floatingBot.classList.remove('hidden');
     }
+  }
+
+  // Timer : tourne uniquement pendant les exercices
+  if (sectionId === 'exercises') {
+    resumeTimer();
+  } else {
+    pauseTimer();
   }
 
   if (sectionId === 'home') loadStats();
@@ -594,9 +629,24 @@ async function validateAnswer() {
 
 function getCorrectMessage() {
   const messages = {
-    promoteur: ['🏆 Goal ! Bien joué !', '⚽ Quel tir ! Parfait !', '💪 Champion !', '🎯 En plein dans le mille !'],
-    rebelle: ['😎 Trop bien !', '✌️ Stylé, bonne réponse !', '🎸 Tu gères grave !', '👏 Nice !'],
-    imagineur: ['✨ Magnifique !', '🎨 Brillant, comme une oeuvre d\'art !', '🐉 Victoire héroïque !', '🌟 Légendaire !']
+    promoteur: [
+      '🏆 Goal ! Bien joué !', '⚽ Quel tir ! Parfait !', '💪 Champion !', '🎯 En plein dans le mille !',
+      '🥇 Tu es une machine ! Inarrêtable !', '🔥 En feu ! Tu enchaines les victoires !',
+      '⭐ MVP du jour ! Quelle classe !', '🎉 BOOOOM ! Réponse parfaite !',
+      '💯 Ton père va être tellement fier de toi !', '🚀 Tu décolles ! Rien ne t\'arrête !'
+    ],
+    rebelle: [
+      '😎 Trop bien !', '✌️ Stylé, bonne réponse !', '🎸 Tu gères grave !', '👏 Nice !',
+      '🔥 Trop fort, franchement respect !', '💫 T\'as tout compris, c\'est beau !',
+      '🎤 Mic drop ! Réponse parfaite !', '😏 Easy, hein ? T\'es trop balèze !',
+      '🤩 Wahou ! T\'as assuré comme un pro !', '✨ Classe ! Tu fais ça trop bien !'
+    ],
+    imagineur: [
+      '✨ Magnifique !', '🎨 Brillant, comme une oeuvre d\'art !', '🐉 Victoire héroïque !', '🌟 Légendaire !',
+      '⚔️ Le sort a parfaitement fonctionné, mage !', '🏰 Tu viens de conquérir un nouveau territoire !',
+      '🦅 Ton savoir s\'envole vers les étoiles !', '🌈 Réponse arc-en-ciel de génie !',
+      '👑 Le roi du savoir, c\'est toi !', '🎭 Quelle maîtrise ! Tu es un artiste !'
+    ]
   };
   const pool = messages[currentUser.profile_type] || messages.promoteur;
   return pool[Math.floor(Math.random() * pool.length)];
@@ -604,9 +654,24 @@ function getCorrectMessage() {
 
 function getIncorrectMessage() {
   const messages = {
-    promoteur: ['Pas grave, on se relève ! 💪', 'Prochaine fois, tu marques ! ⚽', 'C\'est qu\'un essai, tu vas y arriver ! 🎯'],
-    rebelle: ['Pas de stress, ça arrive 😌', 'T\'inquiète, essaie encore ✌️', 'C\'est pas grave du tout 🤷'],
-    imagineur: ['Chaque erreur est un apprentissage ✨', 'Le héros apprend de ses échecs 🛡️', 'Prochaine quête, tu réussiras ! 🗡️']
+    promoteur: [
+      'Pas grave, on se relève ! 💪', 'Prochaine fois, tu marques ! ⚽', 'C\'est qu\'un essai, tu vas y arriver ! 🎯',
+      'Les meilleurs joueurs ratent aussi des penalties ! Tu vas scorer au prochain ! 🥅',
+      'C\'est comme ça qu\'on progresse, champion ! La prochaine est pour toi ! 🏆',
+      'Même Mbappé rate parfois. Allez, on repart ! ⚡'
+    ],
+    rebelle: [
+      'Pas de stress, ça arrive 😌', 'T\'inquiète, essaie encore ✌️', 'C\'est pas grave du tout 🤷',
+      'Relax, t\'es en train d\'apprendre et c\'est ça qui compte 🎸',
+      'Eh, personne n\'est parfait ! T\'es sur la bonne voie 😎',
+      'Pas de panique, tu vas déchirer la prochaine ! 🤙'
+    ],
+    imagineur: [
+      'Chaque erreur est un apprentissage ✨', 'Le héros apprend de ses échecs 🛡️', 'Prochaine quête, tu réussiras ! 🗡️',
+      'Même les plus grands sorciers ratent des sorts au début ! 🧙‍♂️',
+      'C\'est un nouveau chapitre de ton aventure. La suite sera meilleure ! 📖',
+      'Le dragon était coriace ! Mais tu deviens plus fort à chaque combat ! 🐉'
+    ]
   };
   const pool = messages[currentUser.profile_type] || messages.promoteur;
   return pool[Math.floor(Math.random() * pool.length)];
@@ -626,10 +691,36 @@ function nextExercise() {
     const rate = Math.round((exerciseScore / total) * 100);
 
     let message = '';
-    if (rate === 100) message = 'Score parfait ! Tu es incroyable ! 🌟🌟🌟';
-    else if (rate >= 80) message = 'Excellent travail ! Continue comme ça ! 🌟🌟';
-    else if (rate >= 60) message = 'Bien joué ! Tu progresses ! 🌟';
-    else message = 'Continue à t\'entraîner, tu vas y arriver ! 💪';
+    const name = currentUser?.name || '';
+    if (rate === 100) {
+      const perfects = [
+        `Score parfait ${name} ! Tu es une LÉGENDE ! 🌟🌟🌟`,
+        `100% !! ${name}, tu es absolument INCROYABLE ! 🏆🔥`,
+        `Sans faute ! ${name}, ton père va être trop fier ! 🌟💪`
+      ];
+      message = perfects[Math.floor(Math.random() * perfects.length)];
+    } else if (rate >= 80) {
+      const greats = [
+        `Excellent ${name} ! Tu as presque tout bon ! Tu es sur la voie du champion ! 🌟🌟`,
+        `Bravo ${name} ! C'est vraiment impressionnant ! Continue comme ça ! 💫🎉`,
+        `Trop fort ${name} ! Tu progresses à vitesse grand V ! 🚀`
+      ];
+      message = greats[Math.floor(Math.random() * greats.length)];
+    } else if (rate >= 60) {
+      const goods = [
+        `Bien joué ${name} ! Tu progresses et c'est ça le plus important ! 🌟`,
+        `Bravo ${name} ! Chaque exercice te rend plus fort ! Continue ! 💪`,
+        `C'est bien ${name} ! Tu es sur le bon chemin, ne lâche rien ! 🎯`
+      ];
+      message = goods[Math.floor(Math.random() * goods.length)];
+    } else {
+      const encourages = [
+        `Continue ${name}, tu vas y arriver ! Chaque effort compte ! 💪🌱`,
+        `C'est en s'entraînant qu'on devient champion ${name} ! Reviens demain encore plus fort ! 🔥`,
+        `Hey ${name}, t'as essayé et c'est déjà super courageux ! On recommence ? 💫`
+      ];
+      message = encourages[Math.floor(Math.random() * encourages.length)];
+    }
 
     document.getElementById('exercise-summary').innerHTML = `
       <p style="font-size: 1.3rem; margin-bottom: 0.5rem;">${exerciseScore} / ${total} correct</p>
@@ -1453,6 +1544,96 @@ async function viewChatHistory(userId, name) {
     modal.classList.remove('hidden');
   } catch (e) {
     console.error('Erreur historique chat:', e);
+  }
+}
+
+// ==================
+// DÉCOUVERTE LIBRE
+// ==================
+function openDecouverte() {
+  showSection('decouverte');
+  loadDecouverteSuggestions();
+}
+
+function loadDecouverteSuggestions() {
+  const suggestions = {
+    promoteur: [
+      { text: '⚽ Comment on devient footballeur pro ?', topic: 'Comment on devient footballeur professionnel ?' },
+      { text: '🏆 Comment marchent les JO ?', topic: 'Comment fonctionnent les Jeux Olympiques ?' },
+      { text: '🚀 C\'est quoi l\'espace ?', topic: 'Comment fonctionne l\'espace et les fusées ?' },
+      { text: '🎮 Comment on crée un jeu vidéo ?', topic: 'Comment on crée un jeu vidéo ?' }
+    ],
+    rebelle: [
+      { text: '🎸 Comment on fait de la musique ?', topic: 'Comment on compose et fait de la musique ?' },
+      { text: '📱 Comment marche TikTok ?', topic: 'Comment fonctionne l\'algorithme de TikTok ?' },
+      { text: '🎬 Comment on fait un film ?', topic: 'Comment on réalise un film ?' },
+      { text: '🛹 L\'histoire du skateboard', topic: 'Quelle est l\'histoire du skateboard ?' }
+    ],
+    imagineur: [
+      { text: '🎨 Comment peindre des figurines ?', topic: 'Comment bien peindre des figurines Warhammer ?' },
+      { text: '🐉 Les dragons dans l\'histoire', topic: 'D\'où viennent les légendes de dragons ?' },
+      { text: '✈️ Comment faire un avion en papier ?', topic: 'Comment fabriquer le meilleur avion en papier ?' },
+      { text: '🏰 Comment vivait-on au Moyen Âge ?', topic: 'Comment vivaient les gens au Moyen Âge ?' }
+    ]
+  };
+
+  // Ajouter les suggestions basées sur la passion du jour
+  const pool = suggestions[currentUser?.profile_type] || suggestions.promoteur;
+  const container = document.getElementById('decouverte-suggestions');
+
+  let allSuggestions = [...pool];
+  if (todayPassion) {
+    allSuggestions.unshift({ text: `🎯 En savoir plus sur : ${todayPassion}`, topic: `Explique-moi tout sur ${todayPassion}` });
+  }
+
+  container.innerHTML = allSuggestions.slice(0, 4).map(s =>
+    `<button class="decouverte-suggestion-btn" onclick="sendDecouverteTopic('${s.topic.replace(/'/g, "\\'")}')">${s.text}</button>`
+  ).join('');
+}
+
+function sendDecouverteTopic(topic) {
+  document.getElementById('decouverte-input').value = topic;
+  sendDecouverteMessage(new Event('submit'));
+}
+
+async function sendDecouverteMessage(e) {
+  e.preventDefault();
+  const input = document.getElementById('decouverte-input');
+  const message = input.value.trim();
+  if (!message) return;
+  input.value = '';
+
+  // Masquer les suggestions après la première question
+  const suggestionsEl = document.getElementById('decouverte-suggestions');
+  if (suggestionsEl) suggestionsEl.style.display = 'none';
+
+  // Ajouter le message utilisateur
+  const container = document.getElementById('decouverte-messages');
+  const userBubble = document.createElement('div');
+  userBubble.className = 'chat-bubble user';
+  userBubble.innerHTML = `<p>${formatMessage(message)}</p>`;
+  container.appendChild(userBubble);
+
+  // Bubble typing
+  const typingBubble = document.createElement('div');
+  typingBubble.className = 'chat-bubble assistant typing';
+  container.appendChild(typingBubble);
+  container.scrollTop = container.scrollHeight;
+
+  try {
+    const res = await fetch('/api/chat/decouverte', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    });
+    const data = await res.json();
+
+    typingBubble.classList.remove('typing');
+    typingBubble.innerHTML = `<p>${formatMessage(data.message)}</p>`;
+    container.scrollTop = container.scrollHeight;
+  } catch (e) {
+    typingBubble.classList.remove('typing');
+    typingBubble.innerHTML = '<p>Oups, un problème est survenu. Réessaie ! 🔧</p>';
   }
 }
 
