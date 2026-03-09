@@ -11,10 +11,10 @@ echo ""
 cd "$(dirname "$0")"
 
 # Détecter la commande docker compose
-if docker compose version >/dev/null 2>&1; then
-  DC="docker compose"
-elif docker-compose version >/dev/null 2>&1; then
-  DC="docker-compose"
+if sudo docker compose version >/dev/null 2>&1; then
+  DC="sudo docker compose"
+elif sudo docker-compose version >/dev/null 2>&1; then
+  DC="sudo docker-compose"
 else
   echo "❌ Docker Compose non trouvé !"
   exit 1
@@ -26,8 +26,8 @@ echo ""
 echo "⏹️  Arrêt du container..."
 timeout 30 $DC down || {
   echo "   ⚠️  docker compose down bloqué, arrêt forcé..."
-  docker kill homework-buddy 2>/dev/null || true
-  docker rm -f homework-buddy 2>/dev/null || true
+  sudo docker kill homework-buddy 2>/dev/null || true
+  sudo docker rm -f homework-buddy 2>/dev/null || true
   $DC rm -f 2>/dev/null || true
 }
 echo "   ✅ Container arrêté"
@@ -67,13 +67,13 @@ echo "   ✅ Container démarré"
 echo ""
 echo "⏳ Vérification du démarrage (10s)..."
 sleep 10
-if docker ps | grep -q homework-buddy; then
+if sudo docker ps | grep -q homework-buddy; then
     echo "   ✅ Homework Buddy est en ligne !"
     echo ""
     echo "🎓 Accès : http://$(hostname -I 2>/dev/null | awk '{print $1}' || echo 'ton-nas'):3000"
 else
     echo "   ❌ Le container ne semble pas tourner. Vérifie les logs :"
-    echo "      docker logs homework-buddy"
+    echo "      sudo docker logs homework-buddy"
 fi
 echo ""
 echo "✨ Réinstallation terminée !"
