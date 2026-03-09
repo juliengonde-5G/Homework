@@ -1,46 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
-// GET /api/exercises - Exercices adaptés au niveau
-router.get('/', (req, res) => {
-  const db = req.app.locals.db;
-  const { subject, level, difficulty, limit } = req.query;
-  const userId = req.session.userId;
-
-  let query = 'SELECT * FROM exercises WHERE 1=1';
-  const params = [];
-  if (subject) { query += ' AND subject = ?'; params.push(subject); }
-  if (level) { query += ' AND level = ?'; params.push(level); }
-  if (difficulty) { query += ' AND difficulty = ?'; params.push(parseInt(difficulty)); }
-  query += ' ORDER BY RANDOM()';
-  if (limit) { query += ' LIMIT ?'; params.push(parseInt(limit)); }
-
-  const exercises = db.prepare(query).all(...params);
-
-  // Enrichir avec la progression
-  if (userId) {
-    const progress = db.prepare(`
-      SELECT exercise_id, status, score, attempts FROM user_progress
-      WHERE user_id = ? AND exercise_id IS NOT NULL
-    `).all(userId);
-    const progressMap = {};
-    progress.forEach(p => { progressMap[p.exercise_id] = p; });
-    exercises.forEach(e => {
-      e.progress = progressMap[e.id] || null;
-      e.options = JSON.parse(e.options || '[]');
-      e.tags = JSON.parse(e.tags || '[]');
-    });
-  } else {
-    exercises.forEach(e => {
-      e.options = JSON.parse(e.options || '[]');
-      e.tags = JSON.parse(e.tags || '[]');
-    });
-  }
-
-  res.json(exercises);
-});
-
 // GET /api/exercises/adaptive - Exercices adaptatifs basés sur le niveau détecté
+// IMPORTANT: cette route DOIT être avant la route générique '/' pour éviter un conflit
 router.get('/adaptive', (req, res) => {
   const db = req.app.locals.db;
   const userId = req.session.userId;

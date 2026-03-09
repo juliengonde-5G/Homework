@@ -44,6 +44,9 @@ function initDatabase() {
       difficulty INTEGER DEFAULT 1,
       order_index INTEGER DEFAULT 0,
       tags TEXT DEFAULT '[]',
+      media_url TEXT,
+      video_url TEXT,
+      duration_minutes INTEGER DEFAULT 8,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -61,7 +64,20 @@ function initDatabase() {
       difficulty INTEGER DEFAULT 1,
       points INTEGER DEFAULT 10,
       tags TEXT DEFAULT '[]',
+      media_url TEXT,
       FOREIGN KEY (course_id) REFERENCES courses(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS daily_programs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      blocks TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      current_block INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, date)
     );
 
     CREATE TABLE IF NOT EXISTS user_progress (
@@ -198,6 +214,37 @@ function initDatabase() {
   if (!columns.includes('role')) {
     db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'child'");
   }
+
+  // Migration: ajouter colonnes media aux cours et exercices
+  const coursesCols = db.pragma('table_info(courses)').map(c => c.name);
+  if (!coursesCols.includes('media_url')) {
+    db.exec("ALTER TABLE courses ADD COLUMN media_url TEXT");
+  }
+  if (!coursesCols.includes('video_url')) {
+    db.exec("ALTER TABLE courses ADD COLUMN video_url TEXT");
+  }
+  if (!coursesCols.includes('duration_minutes')) {
+    db.exec("ALTER TABLE courses ADD COLUMN duration_minutes INTEGER DEFAULT 8");
+  }
+  const exercisesCols = db.pragma('table_info(exercises)').map(c => c.name);
+  if (!exercisesCols.includes('media_url')) {
+    db.exec("ALTER TABLE exercises ADD COLUMN media_url TEXT");
+  }
+
+  // Migration: créer la table daily_programs si elle n'existe pas
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS daily_programs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      blocks TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      current_block INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, date)
+    )
+  `);
 
   // Seed users si vide (enfants + parents)
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
