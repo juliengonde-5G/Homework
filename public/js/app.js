@@ -27,20 +27,26 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadProfiles() {
   try {
     const res = await fetch('/api/auth/family');
-    const { children, parents } = await res.json();
+    if (!res.ok) throw new Error('family endpoint failed');
+    const data = await res.json();
+    const children = data.children || [];
+    const parents = data.parents || [];
 
     // Ligne 1 : les enfants
     const grid = document.getElementById('profiles-grid');
-    grid.innerHTML = children.map(u => `
-      <div class="profile-card animate-in" onclick="login(${u.id})" style="animation-delay: ${u.id * 0.1}s">
-        <span class="profile-avatar">${u.avatar}</span>
-        <span class="profile-name">${u.name}</span>
-        <span class="profile-classe">${u.classe}</span>
-      </div>
-    `).join('');
+    if (children.length > 0) {
+      grid.innerHTML = children.map(u => `
+        <div class="profile-card animate-in" onclick="login(${u.id})" style="animation-delay: ${u.id * 0.1}s">
+          <span class="profile-avatar">${u.avatar}</span>
+          <span class="profile-name">${u.name}</span>
+          <span class="profile-classe">${u.classe}</span>
+        </div>
+      `).join('');
+    }
 
     // Ligne 2 : les parents
     const parentsGrid = document.getElementById('parents-grid');
+    const separator = document.querySelector('.family-separator');
     if (parentsGrid && parents.length > 0) {
       parentsGrid.innerHTML = parents.map(u => `
         <div class="profile-card parent-card animate-in" onclick="loginParentProfile(${u.id}, '${u.name}')" style="animation-delay: ${(u.id) * 0.1}s">
@@ -49,6 +55,9 @@ async function loadProfiles() {
           <span class="profile-role">${u.name === 'Ophélie' ? 'Maman' : 'Papa'}</span>
         </div>
       `).join('');
+    } else if (parents.length === 0) {
+      if (separator) separator.style.display = 'none';
+      if (parentsGrid) parentsGrid.style.display = 'none';
     }
 
     // Charger les alertes anniversaires

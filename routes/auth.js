@@ -4,15 +4,15 @@ const router = express.Router();
 // GET /api/auth/users - Liste des profils enfants
 router.get('/users', (req, res) => {
   const db = req.app.locals.db;
-  const users = db.prepare("SELECT id, name, avatar, age, classe, profile_type, theme, is_dyslexic, interests, role FROM users WHERE role = 'child' OR classe != 'Pro'").all();
+  const users = db.prepare("SELECT id, name, avatar, age, classe, profile_type, theme, is_dyslexic, interests FROM users WHERE classe != 'Pro'").all();
   res.json(users.map(u => ({ ...u, interests: JSON.parse(u.interests || '[]') })));
 });
 
 // GET /api/auth/family - Tous les membres de la famille (pour page d'accueil)
 router.get('/family', (req, res) => {
   const db = req.app.locals.db;
-  const children = db.prepare("SELECT id, name, avatar, age, classe, profile_type, theme, role FROM users WHERE role = 'child' OR (classe != 'Pro' AND (role IS NULL OR role = 'child'))").all();
-  const parents = db.prepare("SELECT id, name, avatar, age, classe, profile_type, theme, role FROM users WHERE role = 'parent' OR classe = 'Pro'").all();
+  const children = db.prepare("SELECT id, name, avatar, age, classe, profile_type, theme FROM users WHERE classe != 'Pro'").all();
+  const parents = db.prepare("SELECT id, name, avatar, age, classe, profile_type, theme FROM users WHERE classe = 'Pro'").all();
   res.json({ children, parents });
 });
 

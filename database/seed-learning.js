@@ -2,14 +2,15 @@ function seedLearningPaths(db) {
   const pathCount = db.prepare('SELECT COUNT(*) as count FROM learning_paths').get();
   if (pathCount.count > 0) return;
 
-  // Trouver ou créer un user_id parent (on utilise un ID dédié)
+  // Trouver Julien (créé par init.js)
   let parentUser = db.prepare("SELECT id FROM users WHERE name = 'Julien'").get();
   if (!parentUser) {
+    // Fallback : créer Julien s'il n'existe pas encore
     db.prepare(`
       INSERT INTO users (name, avatar, age, classe, profile_type, theme, is_dyslexic, interests, daily_limit_minutes)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run('Julien', '👔', 40, 'Pro', 'entrepreneur', 'default', 0,
-      JSON.stringify(['textile', 'recyclage', 'IA', 'management', 'solidarité textile', 'frip and co']), 120);
+    `).run('Julien', '👨', 40, 'Pro', 'analyseur', 'entrepreneur', 0,
+      JSON.stringify(['textile', 'recyclage', 'IA', 'management']), 999);
     parentUser = db.prepare("SELECT id FROM users WHERE name = 'Julien'").get();
   }
 
