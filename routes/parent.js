@@ -10,7 +10,7 @@ function requireParent(req, res, next) {
 router.get('/dashboard', requireParent, (req, res) => {
   const db = req.app.locals.db;
 
-  const children = db.prepare('SELECT id, name, avatar, age, classe, profile_type, is_dyslexic FROM users').all();
+  const children = db.prepare("SELECT id, name, avatar, age, classe, profile_type, is_dyslexic FROM users WHERE classe != 'Pro'").all();
 
   const dashboard = children.map(child => {
     // Stats par matière
@@ -111,7 +111,7 @@ router.get('/chat-history/:userId', requireParent, (req, res) => {
 router.get('/weekly-report', requireParent, (req, res) => {
   const db = req.app.locals.db;
 
-  const children = db.prepare('SELECT id, name FROM users').all();
+  const children = db.prepare("SELECT id, name FROM users WHERE classe != 'Pro'").all();
   const report = children.map(child => {
     const weekStats = db.prepare(`
       SELECT

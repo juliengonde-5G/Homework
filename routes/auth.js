@@ -4,7 +4,7 @@ const router = express.Router();
 // GET /api/auth/users - Liste des profils enfants
 router.get('/users', (req, res) => {
   const db = req.app.locals.db;
-  const users = db.prepare('SELECT id, name, avatar, age, classe, profile_type, theme, is_dyslexic, interests FROM users').all();
+  const users = db.prepare("SELECT id, name, avatar, age, classe, profile_type, theme, is_dyslexic, interests FROM users WHERE classe != 'Pro'").all();
   res.json(users.map(u => ({ ...u, interests: JSON.parse(u.interests || '[]') })));
 });
 
