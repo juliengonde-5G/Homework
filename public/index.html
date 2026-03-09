@@ -114,6 +114,9 @@
             </button>
           </div>
 
+          <!-- Section vidéos personnalisées -->
+          <div id="home-videos" class="home-videos-section"></div>
+
           <div id="recent-badges" class="recent-badges"></div>
         </section>
 
@@ -206,6 +209,70 @@
       </div>
     </div>
 
+    <!-- Bot flottant (visible sur toutes les pages sauf chat) -->
+    <div id="floating-bot" class="floating-bot hidden">
+      <div id="floating-bot-bubble" class="floating-bot-bubble hidden">
+        <button class="floating-bot-bubble-close" onclick="closeFloatingBubble()">&times;</button>
+        <p id="floating-bot-text"></p>
+        <div id="floating-bot-actions" class="floating-bot-actions"></div>
+      </div>
+      <button id="floating-bot-btn" class="floating-bot-btn" onclick="toggleFloatingChat()">
+        <span class="floating-bot-icon">💬</span>
+        <span class="floating-bot-pulse"></span>
+      </button>
+    </div>
+
+    <!-- Timer flottant (toujours visible, même sur mobile) -->
+    <div id="floating-timer" class="floating-timer hidden">
+      <svg class="timer-ring" viewBox="0 0 60 60">
+        <circle class="timer-ring-bg" cx="30" cy="30" r="26" />
+        <circle id="timer-ring-progress" class="timer-ring-progress" cx="30" cy="30" r="26" />
+      </svg>
+      <span id="floating-timer-value" class="floating-timer-value">45</span>
+      <span class="floating-timer-label">min</span>
+    </div>
+
+    <!-- Modal bienvenue (première visite) -->
+    <div id="welcome-modal" class="modal hidden">
+      <div class="modal-content welcome-modal-content">
+        <h2>Bienvenue sur Homework Buddy !</h2>
+        <div class="welcome-steps">
+          <div class="welcome-step">
+            <span class="welcome-step-icon">📖</span>
+            <p><strong>Cours</strong> - Lis les lecons pour comprendre</p>
+          </div>
+          <div class="welcome-step">
+            <span class="welcome-step-icon">✏️</span>
+            <p><strong>Exercices</strong> - Entraine-toi avec des exos adaptes a ton niveau</p>
+          </div>
+          <div class="welcome-step">
+            <span class="welcome-step-icon">💬</span>
+            <p><strong>Assistant</strong> - Pose tes questions a tout moment via le bouton en bas a droite</p>
+          </div>
+          <div class="welcome-step">
+            <span class="welcome-step-icon">⏱️</span>
+            <p><strong>Timer</strong> - Tu as <strong>45 minutes</strong> par jour, le compteur est en bas a gauche</p>
+          </div>
+          <div class="welcome-step">
+            <span class="welcome-step-icon">🎥</span>
+            <p><strong>Videos</strong> - Des videos fun liees a tes passions pour t'aider a apprendre</p>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="closeWelcomeModal()" style="margin-top: 1.5rem;">
+          C'est parti ! 🚀
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal vidéos -->
+    <div id="videos-modal" class="modal hidden">
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeVideosModal()">✕</button>
+        <h2>🎥 Videos pour toi</h2>
+        <div id="videos-grid" class="videos-grid"></div>
+      </div>
+    </div>
+
     <!-- Alerte temps écoulé -->
     <div id="time-up-modal" class="modal hidden">
       <div class="modal-content time-up">
@@ -216,6 +283,8 @@
     </div>
   </div>
 
+  <!-- Chart.js pour les courbes du dashboard parent -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="/js/app.js"></script>
 </body>
 </html>

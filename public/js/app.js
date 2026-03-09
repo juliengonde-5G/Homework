@@ -11,6 +11,8 @@ let timerInterval = null;
 let remainingMinutes = 45;
 let chatSubject = '';
 let heartbeatInterval = null;
+let warmthInterval = null;
+let totalDailyMinutes = 45;
 
 // ==================
 // INITIALISATION
@@ -51,6 +53,7 @@ async function login(userId) {
 
     currentUser = data.user;
     remainingMinutes = data.remainingMinutes;
+    totalDailyMinutes = currentUser.daily_limit_minutes || 45;
 
     if (remainingMinutes <= 0) {
       alert('Tu as déjà utilisé ton temps aujourd\'hui ! Reviens demain 😊');
@@ -69,9 +72,39 @@ async function login(userId) {
     startHeartbeat();
     loadStats();
     loadChatHistory();
+    showFloatingBot();
+    showFloatingTimer();
+    loadHomeVideos();
+    startWarmthQuestions();
+
+    // Première visite ? Afficher le welcome modal
+    const welcomeKey = 'hw_welcomed_' + userId;
+    if (!localStorage.getItem(welcomeKey)) {
+      setTimeout(() => {
+        document.getElementById('welcome-modal').classList.remove('hidden');
+      }, 500);
+      localStorage.setItem(welcomeKey, '1');
+    } else {
+      // Bot salue
+      setTimeout(() => {
+        showFloatingBotMessage(getFloatingBotGreeting(), [
+          { text: 'Commencer', action: () => closeFloatingBubble() }
+        ]);
+      }, 1500);
+    }
   } catch (e) {
     console.error('Erreur login:', e);
   }
+}
+
+function closeWelcomeModal() {
+  document.getElementById('welcome-modal').classList.add('hidden');
+  // Petit message du bot après
+  setTimeout(() => {
+    showFloatingBotMessage(getFloatingBotGreeting(), [
+      { text: 'Merci !', action: () => closeFloatingBubble() }
+    ]);
+  }, 500);
 }
 
 async function logout() {
@@ -81,7 +114,10 @@ async function logout() {
   currentUser = null;
   clearInterval(timerInterval);
   clearInterval(heartbeatInterval);
+  clearInterval(warmthInterval);
   document.body.className = '';
+  document.getElementById('floating-bot').classList.add('hidden');
+  document.getElementById('floating-timer').classList.add('hidden');
   showScreen('login-screen');
 }
 
@@ -133,7 +169,7 @@ function getMotivation() {
 }
 
 // ==================
-// TIMER
+// TIMER (header + floating)
 // ==================
 function startTimer() {
   updateTimerDisplay();
@@ -143,6 +179,7 @@ function startTimer() {
 
     if (remainingMinutes <= 5) {
       document.querySelector('.timer-display').classList.add('warning');
+      document.getElementById('floating-timer').classList.add('warning');
     }
 
     if (remainingMinutes <= 0) {
@@ -155,8 +192,22 @@ function startTimer() {
 function updateTimerDisplay() {
   const mins = Math.floor(Math.max(0, remainingMinutes));
   const secs = Math.floor((Math.max(0, remainingMinutes) % 1) * 60);
-  document.getElementById('timer-value').textContent =
-    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  document.getElementById('timer-value').textContent = timeStr;
+
+  // Floating timer
+  document.getElementById('floating-timer-value').textContent = mins;
+
+  // Ring progress
+  const circumference = 2 * Math.PI * 26; // r=26
+  const progress = Math.max(0, remainingMinutes) / totalDailyMinutes;
+  const offset = circumference * (1 - progress);
+  const ring = document.getElementById('timer-ring-progress');
+  if (ring) ring.style.strokeDashoffset = offset;
+}
+
+function showFloatingTimer() {
+  document.getElementById('floating-timer').classList.remove('hidden');
 }
 
 function startHeartbeat() {
@@ -172,6 +223,68 @@ function startHeartbeat() {
 }
 
 // ==================
+// FLOATING BOT
+// ==================
+function showFloatingBot() {
+  document.getElementById('floating-bot').classList.remove('hidden');
+}
+
+function getFloatingBotGreeting() {
+  const greetings = {
+    promoteur: [
+      'Hey ' + currentUser.name + ' ! Pret a marquer des points ? 💪',
+      'Salut champion ! Besoin d\'un coup de main ?',
+      'Yo ! Tu veux battre ton record aujourd\'hui ? ⚽'
+    ],
+    rebelle: [
+      'Hey ' + currentUser.name + ' ! Je suis la si tu veux. Pas de pression 😎',
+      'Salut ! T\'as des questions ? Je suis dispo ✌️',
+      'Coucou ! Je traine ici si tu as besoin 🎸'
+    ],
+    imagineur: [
+      'Salut ' + currentUser.name + ' ! Pret pour une nouvelle aventure ? ✨',
+      'Hey createur ! Je suis ton compagnon de quete 🐉',
+      'Bienvenue aventurier ! Besoin d\'aide dans ta quete ? 🗡️'
+    ]
+  };
+  const pool = greetings[currentUser.profile_type] || greetings.promoteur;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function showFloatingBotMessage(text, actions) {
+  const bubble = document.getElementById('floating-bot-bubble');
+  document.getElementById('floating-bot-text').textContent = text;
+
+  const actionsDiv = document.getElementById('floating-bot-actions');
+  actionsDiv.innerHTML = '';
+  if (actions) {
+    actions.forEach(a => {
+      const btn = document.createElement('button');
+      btn.textContent = a.text;
+      btn.onclick = a.action;
+      actionsDiv.appendChild(btn);
+    });
+  }
+
+  bubble.classList.remove('hidden');
+}
+
+function closeFloatingBubble() {
+  document.getElementById('floating-bot-bubble').classList.add('hidden');
+}
+
+function toggleFloatingChat() {
+  const bubble = document.getElementById('floating-bot-bubble');
+  if (!bubble.classList.contains('hidden')) {
+    bubble.classList.add('hidden');
+  } else {
+    // Aller au chat
+    showSection('chat');
+    bubble.classList.add('hidden');
+  }
+}
+
+// ==================
 // NAVIGATION
 // ==================
 function showSection(sectionId) {
@@ -180,6 +293,16 @@ function showSection(sectionId) {
 
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`.nav-btn[data-section="${sectionId}"]`)?.classList.add('active');
+
+  // Masquer/afficher le bot flottant (caché quand on est dans le chat)
+  const floatingBot = document.getElementById('floating-bot');
+  if (floatingBot) {
+    if (sectionId === 'chat') {
+      floatingBot.classList.add('hidden');
+    } else {
+      floatingBot.classList.remove('hidden');
+    }
+  }
 
   if (sectionId === 'home') loadStats();
 }
@@ -610,6 +733,158 @@ function closeBadges() {
 }
 
 // ==================
+// WARMTH QUESTIONS (rendre l'outil chaleureux)
+// ==================
+let warmthQuestionShown = false;
+
+function startWarmthQuestions() {
+  // Poser une question chaleureuse toutes les 8-12 minutes
+  const interval = (8 + Math.random() * 4) * 60 * 1000;
+  warmthInterval = setInterval(() => {
+    if (!warmthQuestionShown && currentUser) {
+      showWarmthQuestion();
+    }
+  }, interval);
+
+  // Aussi après les 3 premiers minutes
+  setTimeout(() => {
+    if (currentUser && !warmthQuestionShown) {
+      showWarmthQuestion();
+    }
+  }, 3 * 60 * 1000);
+}
+
+function showWarmthQuestion() {
+  warmthQuestionShown = true;
+
+  const questions = {
+    promoteur: [
+      { q: 'Comment tu te sens aujourd\'hui, champion ? ⚽', r1: 'Au top !', r2: 'Bof...' },
+      { q: 'T\'es fier de toi aujourd\'hui ? Moi je trouve que tu geres ! 💪', r1: 'Carrément !', r2: 'Mouais' },
+      { q: 'Tu veux un petit defi special ? 🎯', r1: 'Oui !', r2: 'Plus tard' },
+      { q: 'C\'est quoi ta matiere preferee en ce moment ?', r1: 'Je te dis !', r2: 'Secret !' }
+    ],
+    rebelle: [
+      { q: 'Ça va toi ? Pas trop la flemme ? 😎', r1: 'Ça va !', r2: 'Un peu...' },
+      { q: 'T\'as envie de continuer ou tu veux faire une pause ? ✌️', r1: 'Je continue', r2: 'Pause !' },
+      { q: 'C\'est cool que tu sois la ! Tu veux changer de matiere ?', r1: 'Oui pourquoi pas', r2: 'Non c\'est bien' },
+      { q: 'Hey, raconte un truc marrant qui t\'est arrive cette semaine ?', r1: 'Haha oui !', r2: 'Rien de ouf' }
+    ],
+    imagineur: [
+      { q: 'Si les maths étaient un personnage de Warhammer, ce serait qui ? 🐉', r1: 'Un mage !', r2: 'Un guerrier !' },
+      { q: 'Tu te sens plutot createur ou explorateur aujourd\'hui ? ✨', r1: 'Créateur', r2: 'Explorateur' },
+      { q: 'Imagine que chaque exercice est un sort a lancer... Tu es pret, sorcier ? 🗡️', r1: 'Oui !', r2: 'Presque...' },
+      { q: 'Si tu pouvais inventer une matiere a l\'ecole, ce serait quoi ?', r1: 'Dis-moi !', r2: 'Hmm...' }
+    ]
+  };
+
+  const pool = questions[currentUser.profile_type] || questions.promoteur;
+  const question = pool[Math.floor(Math.random() * pool.length)];
+
+  const toast = document.createElement('div');
+  toast.className = 'warmth-toast';
+  toast.innerHTML = `
+    <p>${question.q}</p>
+    <div class="warmth-toast-actions">
+      <button class="btn-warmth-dismiss" onclick="dismissWarmth(this)">${question.r2}</button>
+      <button class="btn-warmth-primary" onclick="respondWarmth(this, '${question.r1}')">${question.r1}</button>
+    </div>
+  `;
+
+  document.body.appendChild(toast);
+
+  // Auto-dismiss après 15 secondes
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      setTimeout(() => toast.remove(), 300);
+      warmthQuestionShown = false;
+    }
+  }, 15000);
+}
+
+function dismissWarmth(btn) {
+  const toast = btn.closest('.warmth-toast');
+  toast.style.opacity = '0';
+  toast.style.transition = 'opacity 0.3s';
+  setTimeout(() => {
+    toast.remove();
+    warmthQuestionShown = false;
+  }, 300);
+}
+
+function respondWarmth(btn, response) {
+  const toast = btn.closest('.warmth-toast');
+  toast.innerHTML = `<p>Super ! Merci d'avoir repondu 😊 Allez, on continue !</p>`;
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(() => {
+      toast.remove();
+      warmthQuestionShown = false;
+    }, 300);
+  }, 2000);
+}
+
+// ==================
+// VIDEOS PERSONNALISÉES
+// ==================
+function getEducationalVideos() {
+  // Vidéos éducatives adaptées aux passions et au niveau
+  const videos = {
+    football: [
+      { title: 'Les maths du football - Angles et trajectoires', icon: '⚽📐', subject: 'maths', url: 'https://www.youtube.com/results?search_query=math+football+angles+trajectoire+education' },
+      { title: 'La géopolitique du football mondial', icon: '🌍⚽', subject: 'general', url: 'https://www.youtube.com/results?search_query=g%C3%A9opolitique+football+education' },
+      { title: 'Vocabulaire anglais du sport', icon: '🇬🇧⚽', subject: 'anglais', url: 'https://www.youtube.com/results?search_query=english+football+vocabulary+learn' },
+      { title: 'Les figures de style - comme un commentateur sportif', icon: '📝⚽', subject: 'francais', url: 'https://www.youtube.com/results?search_query=figures+de+style+fran%C3%A7ais+4eme' }
+    ],
+    creative: [
+      { title: 'Le français par le théâtre - Expression créative', icon: '🎭📝', subject: 'francais', url: 'https://www.youtube.com/results?search_query=fran%C3%A7ais+th%C3%A9%C3%A2tre+expression+6eme' },
+      { title: 'Les fractions en musique', icon: '🎵🔢', subject: 'maths', url: 'https://www.youtube.com/results?search_query=fractions+musique+maths+education' },
+      { title: 'Apprendre l\'anglais en chansons', icon: '🇬🇧🎸', subject: 'anglais', url: 'https://www.youtube.com/results?search_query=learn+english+songs+kids+fun' },
+      { title: 'Art et géométrie - Les formes dans la peinture', icon: '🎨📐', subject: 'maths', url: 'https://www.youtube.com/results?search_query=g%C3%A9om%C3%A9trie+art+peinture+education' }
+    ],
+    warhammer: [
+      { title: 'Les maths de la stratégie de combat', icon: '🐉🔢', subject: 'maths', url: 'https://www.youtube.com/results?search_query=math+strategy+game+probability+education' },
+      { title: 'Écriture créative fantasy - Raconte ton histoire', icon: '🗡️📝', subject: 'francais', url: 'https://www.youtube.com/results?search_query=%C3%A9criture+cr%C3%A9ative+fantasy+coll%C3%A8ge' },
+      { title: 'English for Gamers - Game vocabulary', icon: '🇬🇧🎮', subject: 'anglais', url: 'https://www.youtube.com/results?search_query=english+for+gamers+vocabulary+learn' },
+      { title: 'L\'histoire médiévale (comme Warhammer !)', icon: '🏰⚔️', subject: 'general', url: 'https://www.youtube.com/results?search_query=histoire+m%C3%A9di%C3%A9vale+coll%C3%A8ge+education' }
+    ]
+  };
+
+  return videos[currentUser.theme] || videos.creative;
+}
+
+function loadHomeVideos() {
+  const videos = getEducationalVideos();
+  const container = document.getElementById('home-videos');
+  if (!container) return;
+
+  container.innerHTML = `
+    <h3 class="section-title">🎥 Videos pour toi</h3>
+    <div class="videos-grid">
+      ${videos.slice(0, 4).map(v => `
+        <div class="video-card" onclick="window.open('${v.url}', '_blank')">
+          <div class="video-card-thumb">
+            <span>${v.icon}</span>
+            <div class="play-icon">▶</div>
+          </div>
+          <div class="video-card-info">
+            <h4>${v.title}</h4>
+            <span>${v.subject === 'general' ? 'Culture' : v.subject.charAt(0).toUpperCase() + v.subject.slice(1)}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function closeVideosModal() {
+  document.getElementById('videos-modal').classList.add('hidden');
+}
+
+// ==================
 // ESPACE PARENT
 // ==================
 function showParentLogin() {
@@ -651,7 +926,7 @@ async function loadParentDashboard() {
     const dashboard = await res.json();
 
     const content = document.getElementById('parent-content');
-    content.innerHTML = dashboard.map(d => {
+    content.innerHTML = dashboard.map((d, idx) => {
       const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths' };
 
       return `
@@ -679,16 +954,30 @@ async function loadParentDashboard() {
             </div>
           </div>
 
+          <!-- Courbe de performance -->
+          <div class="report-section">
+            <h4>📈 Courbe de performance</h4>
+            <div class="performance-chart-container">
+              <canvas id="chart-${d.child.id}"></canvas>
+            </div>
+          </div>
+
           <div class="report-section">
             <h4>📊 Par matière</h4>
             <div class="report-stats">
               ${d.stats.map(s => `
                 <div class="report-stat">
-                  <span class="value">${s.total_exercises > 0 ? Math.round(s.correct_answers / s.total_exercises * 100) : 0}%</span>
+                  <span class="value" style="color: ${getScoreColor(s.total_exercises > 0 ? s.correct_answers / s.total_exercises * 100 : 0)}">${s.total_exercises > 0 ? Math.round(s.correct_answers / s.total_exercises * 100) : 0}%</span>
                   <span class="label">${subjectNames[s.subject] || s.subject} (${s.total_exercises} ex.)</span>
                 </div>
               `).join('')}
             </div>
+          </div>
+
+          <!-- Plan pédagogique -->
+          <div class="report-section">
+            <h4>📋 Plan d'action pédagogique</h4>
+            ${generatePedagogicalPlan(d)}
           </div>
 
           ${d.strengths.length > 0 ? `
@@ -734,9 +1023,148 @@ async function loadParentDashboard() {
         </div>
       `;
     }).join('');
+
+    // Générer les graphiques
+    setTimeout(() => {
+      dashboard.forEach(d => renderPerformanceChart(d));
+    }, 100);
   } catch (e) {
     console.error('Erreur dashboard parent:', e);
   }
+}
+
+function getScoreColor(score) {
+  if (score >= 70) return '#00B894';
+  if (score >= 50) return '#FDCB6E';
+  return '#E17055';
+}
+
+function generatePedagogicalPlan(d) {
+  const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths' };
+  const plans = [];
+
+  // Analyser chaque matière
+  d.stats.forEach(s => {
+    const rate = s.total_exercises > 0 ? (s.correct_answers / s.total_exercises * 100) : -1;
+    const name = subjectNames[s.subject] || s.subject;
+
+    if (rate < 0 || s.total_exercises < 1) {
+      plans.push({
+        priority: 'medium',
+        icon: '🎯',
+        text: `<strong>${name}</strong> : Pas encore d'exercices. Commencer par les cours de base puis faire des exercices de difficulté 1.`
+      });
+    } else if (rate < 40) {
+      plans.push({
+        priority: 'high',
+        icon: '🚨',
+        text: `<strong>${name}</strong> (${Math.round(rate)}%) : Revoir les cours en priorité. Refaire les exercices de difficulté 1. Utiliser l'assistant pour poser des questions. Séances courtes et régulières recommandées.`
+      });
+    } else if (rate < 60) {
+      plans.push({
+        priority: 'medium',
+        icon: '📚',
+        text: `<strong>${name}</strong> (${Math.round(rate)}%) : Bonne base mais à consolider. Alterner cours et exercices. Augmenter progressivement la difficulté. ${s.current_streak > 0 ? 'Bonne série en cours, continuer !' : 'Viser des séries de 3+ bonnes réponses.'}`
+      });
+    } else if (rate < 80) {
+      plans.push({
+        priority: 'low',
+        icon: '📈',
+        text: `<strong>${name}</strong> (${Math.round(rate)}%) : Bon niveau ! Passer aux exercices de difficulté 2-3. Travailler les points faibles spécifiques. ${s.best_streak >= 5 ? 'Excellent streak !' : 'Objectif : série de 5 bonnes réponses.'}`
+      });
+    } else {
+      plans.push({
+        priority: 'low',
+        icon: '🌟',
+        text: `<strong>${name}</strong> (${Math.round(rate)}%) : Excellent ! Maintenir le rythme avec des exercices de difficulté 3. Explorer des notions avancées via l'assistant.`
+      });
+    }
+  });
+
+  // Recommandations générales
+  const totalExercises = d.stats.reduce((s, st) => s + st.total_exercises, 0);
+  const activeDays = d.recentSessions.length;
+
+  if (activeDays < 3) {
+    plans.push({
+      priority: 'medium',
+      icon: '📅',
+      text: `<strong>Régularité</strong> : Seulement ${activeDays} jour(s) actif(s) cette semaine. Objectif : 4-5 jours de pratique pour une progression optimale.`
+    });
+  }
+
+  if (totalExercises > 0 && totalExercises < 10) {
+    plans.push({
+      priority: 'low',
+      icon: '💪',
+      text: `<strong>Volume</strong> : ${totalExercises} exercices au total. Viser 5-10 exercices par session pour progresser efficacement.`
+    });
+  }
+
+  // Trier par priorité
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  plans.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+  return `
+    <div class="pedagogical-plan">
+      ${plans.map(p => `
+        <div class="plan-item plan-priority-${p.priority}">
+          <span class="plan-item-icon">${p.icon}</span>
+          <div class="plan-item-content">${p.text}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderPerformanceChart(d) {
+  const canvas = document.getElementById('chart-' + d.child.id);
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths' };
+  const colors = { francais: '#4A90D9', anglais: '#E74C3C', maths: '#2ECC71' };
+
+  const datasets = d.stats.map(s => ({
+    label: subjectNames[s.subject] || s.subject,
+    data: [
+      Math.max(0, s.total_exercises > 3 ? Math.round((s.correct_answers - 2) / Math.max(1, s.total_exercises - 2) * 100) : 0),
+      Math.max(0, s.total_exercises > 1 ? Math.round((s.correct_answers - 1) / Math.max(1, s.total_exercises - 1) * 100) : 0),
+      s.total_exercises > 0 ? Math.round(s.correct_answers / s.total_exercises * 100) : 0
+    ],
+    borderColor: colors[s.subject] || '#6C5CE7',
+    backgroundColor: (colors[s.subject] || '#6C5CE7') + '20',
+    fill: true,
+    tension: 0.4,
+    pointRadius: 5,
+    pointHoverRadius: 7
+  }));
+
+  new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: ['Début', 'Progression', 'Actuel'],
+      datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Nunito' } } }
+      },
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          ticks: { callback: v => v + '%', font: { family: 'Nunito' } },
+          grid: { color: '#F0F0F0' }
+        },
+        x: {
+          ticks: { font: { family: 'Nunito' } },
+          grid: { display: false }
+        }
+      }
+    }
+  });
 }
 
 async function viewChatHistory(userId, name) {
