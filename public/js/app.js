@@ -2242,66 +2242,73 @@ async function openLearningPath(slug) {
 }
 
 function openAudioLesson(lesson) {
-  currentAudioLesson = lesson;
-  stopSpeech();
-
-  document.getElementById('audio-lesson-number').textContent = `Module ${lesson.module_number}`;
-  document.getElementById('audio-lesson-title').textContent = lesson.title;
-  document.getElementById('audio-lesson-subtitle').textContent = lesson.subtitle || '';
-  document.getElementById('audio-text-content').textContent = lesson.content_text || '';
-  document.getElementById('audio-play-btn').textContent = '▶️ Écouter';
-
-  // Vocabulaire
-  const vocabEl = document.getElementById('audio-vocab');
   try {
-    const vocab = typeof lesson.vocabulary === 'string' ? JSON.parse(lesson.vocabulary) : (lesson.vocabulary || []);
-    if (vocab.length > 0) {
-      vocabEl.innerHTML = `
-        <h4>📖 Vocabulaire</h4>
-        <div class="vocab-list">
-          ${vocab.map(v => `
-            <div class="vocab-item">
-              <span class="vocab-term">${v.en || v.term || ''}</span>
-              <span class="vocab-def">${v.fr || v.definition || ''}</span>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    } else {
-      vocabEl.innerHTML = '';
-    }
-  } catch (e) { vocabEl.innerHTML = ''; }
+    if (!lesson) { console.error('openAudioLesson: lesson is null/undefined'); return; }
+    currentAudioLesson = lesson;
+    stopSpeech();
 
-  // Points clés
-  const keypointsEl = document.getElementById('audio-keypoints');
-  try {
-    const kp = typeof lesson.key_points === 'string' ? JSON.parse(lesson.key_points) : (lesson.key_points || []);
-    if (kp.length > 0) {
-      keypointsEl.innerHTML = `
-        <h4>🎯 Points clés</h4>
-        <ul class="keypoints-list">
-          ${kp.map(p => `<li>${p}</li>`).join('')}
-        </ul>
-      `;
-    } else {
-      keypointsEl.innerHTML = '';
-    }
-  } catch (e) { keypointsEl.innerHTML = ''; }
+    document.getElementById('audio-lesson-number').textContent = `Module ${lesson.module_number}`;
+    document.getElementById('audio-lesson-title').textContent = lesson.title;
+    document.getElementById('audio-lesson-subtitle').textContent = lesson.subtitle || '';
+    document.getElementById('audio-text-content').textContent = lesson.content_text || '';
+    document.getElementById('audio-play-btn').textContent = '▶️ Écouter';
 
-  // Reset visibility
-  document.getElementById('audio-text-container').style.display = 'none';
-  vocabEl.classList.add('hidden');
-  keypointsEl.classList.add('hidden');
+    // Vocabulaire
+    const vocabEl = document.getElementById('audio-vocab');
+    try {
+      const vocab = typeof lesson.vocabulary === 'string' ? JSON.parse(lesson.vocabulary) : (lesson.vocabulary || []);
+      if (vocab.length > 0) {
+        vocabEl.innerHTML = `
+          <h4>📖 Vocabulaire</h4>
+          <div class="vocab-list">
+            ${vocab.map(v => `
+              <div class="vocab-item">
+                <span class="vocab-term">${v.en || v.term || ''}</span>
+                <span class="vocab-def">${v.fr || v.definition || ''}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        vocabEl.innerHTML = '';
+      }
+    } catch (e) { vocabEl.innerHTML = ''; }
 
-  // Reset speed buttons
-  document.querySelectorAll('.audio-speed-btn').forEach(btn => btn.classList.remove('active'));
-  document.querySelector('.audio-speed-btn[onclick="setAudioSpeed(1)"]').classList.add('active');
-  audioSpeed = 1;
+    // Points clés
+    const keypointsEl = document.getElementById('audio-keypoints');
+    try {
+      const kp = typeof lesson.key_points === 'string' ? JSON.parse(lesson.key_points) : (lesson.key_points || []);
+      if (kp.length > 0) {
+        keypointsEl.innerHTML = `
+          <h4>🎯 Points clés</h4>
+          <ul class="keypoints-list">
+            ${kp.map(p => `<li>${p}</li>`).join('')}
+          </ul>
+        `;
+      } else {
+        keypointsEl.innerHTML = '';
+      }
+    } catch (e) { keypointsEl.innerHTML = ''; }
 
-  document.getElementById('audio-player-modal').classList.remove('hidden');
+    // Reset visibility
+    document.getElementById('audio-text-container').style.display = 'none';
+    vocabEl.classList.add('hidden');
+    keypointsEl.classList.add('hidden');
 
-  // Mark as in_progress
-  updateLessonProgress('in_progress');
+    // Reset speed buttons
+    document.querySelectorAll('.audio-speed-btn').forEach(btn => btn.classList.remove('active'));
+    const defaultSpeedBtn = document.querySelector('.audio-speed-btn[onclick*="setAudioSpeed(1)"]');
+    if (defaultSpeedBtn) defaultSpeedBtn.classList.add('active');
+    audioSpeed = 1;
+
+    document.getElementById('audio-player-modal').classList.remove('hidden');
+
+    // Mark as in_progress
+    updateLessonProgress('in_progress');
+  } catch (e) {
+    console.error('Erreur openAudioLesson:', e);
+    alert('Erreur lors de l\'ouverture du module: ' + e.message);
+  }
 }
 
 function toggleAudioPlay() {

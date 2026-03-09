@@ -242,42 +242,43 @@
         <div id="parent-birthdays" class="hidden" style="padding: 0 1.5rem 1.5rem;"></div>
       </div>
 
-      <!-- Audio Player Modal (mode conduite) -->
-      <div id="audio-player-modal" class="modal hidden">
-        <div class="modal-content audio-player-content">
-          <div class="audio-player-header">
-            <button class="btn-back" onclick="closeAudioPlayer()">← Retour</button>
-            <span id="audio-lesson-number" class="audio-lesson-tag">Module 1</span>
-          </div>
-          <h2 id="audio-lesson-title" class="audio-lesson-title">Titre</h2>
-          <p id="audio-lesson-subtitle" class="audio-lesson-subtitle">Sous-titre</p>
+    </div>
 
-          <div class="audio-controls">
-            <button class="audio-btn audio-btn-secondary" onclick="audioRewind()">⏪ -15s</button>
-            <button class="audio-btn audio-btn-main" id="audio-play-btn" onclick="toggleAudioPlay()">▶️ Écouter</button>
-            <button class="audio-btn audio-btn-secondary" onclick="audioForward()">+15s ⏩</button>
-          </div>
+    <!-- Audio Player Modal (global, en dehors des screens pour être toujours accessible) -->
+    <div id="audio-player-modal" class="modal hidden">
+      <div class="modal-content audio-player-content">
+        <div class="audio-player-header">
+          <button class="btn-back" onclick="closeAudioPlayer()">← Retour</button>
+          <span id="audio-lesson-number" class="audio-lesson-tag">Module 1</span>
+        </div>
+        <h2 id="audio-lesson-title" class="audio-lesson-title">Titre</h2>
+        <p id="audio-lesson-subtitle" class="audio-lesson-subtitle">Sous-titre</p>
 
-          <div class="audio-speed-controls">
-            <span>Vitesse :</span>
-            <button class="audio-speed-btn" onclick="setAudioSpeed(0.8)">0.8x</button>
-            <button class="audio-speed-btn active" onclick="setAudioSpeed(1)">1x</button>
-            <button class="audio-speed-btn" onclick="setAudioSpeed(1.2)">1.2x</button>
-          </div>
+        <div class="audio-controls">
+          <button class="audio-btn audio-btn-secondary" onclick="audioRewind()">⏪ -15s</button>
+          <button class="audio-btn audio-btn-main" id="audio-play-btn" onclick="toggleAudioPlay()">▶️ Écouter</button>
+          <button class="audio-btn audio-btn-secondary" onclick="audioForward()">+15s ⏩</button>
+        </div>
 
-          <div id="audio-text-container" class="audio-text-container">
-            <p id="audio-text-content"></p>
-          </div>
+        <div class="audio-speed-controls">
+          <span>Vitesse :</span>
+          <button class="audio-speed-btn" onclick="setAudioSpeed(0.8)">0.8x</button>
+          <button class="audio-speed-btn active" onclick="setAudioSpeed(1)">1x</button>
+          <button class="audio-speed-btn" onclick="setAudioSpeed(1.2)">1.2x</button>
+        </div>
 
-          <div id="audio-vocab" class="audio-vocab hidden"></div>
-          <div id="audio-keypoints" class="audio-keypoints hidden"></div>
+        <div id="audio-text-container" class="audio-text-container">
+          <p id="audio-text-content"></p>
+        </div>
 
-          <div class="audio-actions">
-            <button class="btn-secondary" onclick="toggleAudioText()" style="font-size: 0.85rem;">📝 Texte</button>
-            <button class="btn-secondary" onclick="toggleAudioVocab()" style="font-size: 0.85rem;">📖 Vocabulaire</button>
-            <button class="btn-secondary" onclick="toggleAudioKeypoints()" style="font-size: 0.85rem;">🎯 Points clés</button>
-            <button class="btn-primary" onclick="markLessonComplete()" style="font-size: 0.85rem;">✅ Terminé</button>
-          </div>
+        <div id="audio-vocab" class="audio-vocab hidden"></div>
+        <div id="audio-keypoints" class="audio-keypoints hidden"></div>
+
+        <div class="audio-actions">
+          <button class="btn-secondary" onclick="toggleAudioText()" style="font-size: 0.85rem;">📝 Texte</button>
+          <button class="btn-secondary" onclick="toggleAudioVocab()" style="font-size: 0.85rem;">📖 Vocabulaire</button>
+          <button class="btn-secondary" onclick="toggleAudioKeypoints()" style="font-size: 0.85rem;">🎯 Points clés</button>
+          <button class="btn-primary" onclick="markLessonComplete()" style="font-size: 0.85rem;">✅ Terminé</button>
         </div>
       </div>
     </div>
