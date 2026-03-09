@@ -7,19 +7,14 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - SESSION_SECRET=${SESSION_SECRET:-homework-buddy-secret-change-me}
-      - PARENT_PASSWORD=${PARENT_PASSWORD:-papa2024}
       - PORT=3000
     volumes:
       - ./data:/app/data
-      - homework-db:/app
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
       interval: 30s
       timeout: 10s
       retries: 3
-
-volumes:
-  homework-db:
