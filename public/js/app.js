@@ -2044,21 +2044,184 @@ let audioCharIndex = 0;
 
 function showParentTab(tab) {
   const contentEl = document.getElementById('parent-content');
+  const competenciesEl = document.getElementById('parent-competencies');
   const birthdaysEl = document.getElementById('parent-birthdays');
   const tabDashboard = document.getElementById('tab-dashboard');
+  const tabCompetencies = document.getElementById('tab-competencies');
   const tabBirthdays = document.getElementById('tab-birthdays');
 
   // Reset all tabs
-  [tabDashboard, tabBirthdays].forEach(t => { if (t) t.className = 'btn-secondary'; });
-  [contentEl, birthdaysEl].forEach(el => { if (el) el.classList.add('hidden'); });
+  [tabDashboard, tabCompetencies, tabBirthdays].forEach(t => { if (t) t.className = 'btn-secondary'; });
+  [contentEl, competenciesEl, birthdaysEl].forEach(el => { if (el) el.classList.add('hidden'); });
 
   if (tab === 'birthdays') {
     birthdaysEl.classList.remove('hidden');
     tabBirthdays.className = 'btn-primary';
     loadBirthdayAdmin();
+  } else if (tab === 'competencies') {
+    competenciesEl.classList.remove('hidden');
+    tabCompetencies.className = 'btn-primary';
+    loadCompetenciesTab();
   } else {
     contentEl.classList.remove('hidden');
     tabDashboard.className = 'btn-primary';
+  }
+}
+
+async function loadCompetenciesTab() {
+  const container = document.getElementById('parent-competencies');
+  container.innerHTML = '<p style="text-align:center; padding:2rem;">Chargement...</p>';
+
+  try {
+    const res = await fetch('/api/parent/dashboard');
+    const dashboard = await res.json();
+
+    const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths', techno: 'Techno', sciences: 'Sciences', culture: 'Culture', arts: 'Arts', informatique: 'Info' };
+    const subjectIcons = { francais: '📝', anglais: '🇬🇧', maths: '🔢', techno: '🤖', sciences: '🔬', culture: '🌍', arts: '🎨', informatique: '💻' };
+    const subjectColors = { francais: '#4A90D9', anglais: '#E74C3C', maths: '#2ECC71', techno: '#FF6B35', sciences: '#9B59B6', culture: '#E67E22', arts: '#E91E63', informatique: '#00BCD4' };
+
+    container.innerHTML = '<h3 style="margin-bottom: 1rem;">🎯 Suivi des compétences et parcours</h3>' +
+      dashboard.map(d => {
+        return `<div class="child-report" style="margin-bottom: 2rem;">
+          <h3>${d.child.avatar} ${d.child.name} - ${d.child.classe}</h3>
+          <div class="competency-selector">
+            <button class="btn-primary" style="font-size:0.8rem;" onclick="loadChildCompetencies(${d.child.id})">📊 Voir les compétences détaillées</button>
+            <button class="btn-secondary" style="font-size:0.8rem;" onclick="loadChildCourseHistory(${d.child.id}, '${d.child.name}')">📚 Historique des parcours</button>
+          </div>
+          <div id="competency-detail-${d.child.id}" class="competency-detail"></div>
+        </div>`;
+      }).join('');
+  } catch (e) {
+    container.innerHTML = '<p style="color: #E17055; text-align: center;">Erreur de chargement</p>';
+  }
+}
+
+async function loadChildCompetencies(userId) {
+  const container = document.getElementById('competency-detail-' + userId);
+  container.innerHTML = '<p style="text-align:center; padding:1rem;">Chargement des compétences...</p>';
+
+  try {
+    const res = await fetch('/api/parent/competencies/' + userId);
+    const data = await res.json();
+
+    const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths', techno: 'Techno', sciences: 'Sciences', culture: 'Culture', arts: 'Arts', informatique: 'Info' };
+    const subjectColors = { francais: '#4A90D9', anglais: '#E74C3C', maths: '#2ECC71', techno: '#FF6B35', sciences: '#9B59B6', culture: '#E67E22', arts: '#E91E63', informatique: '#00BCD4' };
+
+    let html = '';
+
+    // Pour chaque matière, afficher les compétences
+    for (const [subject, courses] of Object.entries(data.coursesBySubject)) {
+      const subjectColor = subjectColors[subject] || '#6C5CE7';
+      const competencies = data.competencies[subject] || {};
+
+      const totalCourses = courses.length;
+      const completedCourses = courses.filter(c => c.status === 'completed').length;
+      const progressPercent = totalCourses > 0 ? Math.round(completedCourses / totalCourses * 100) : 0;
+
+      html += `<div class="competency-subject" style="margin: 1rem 0; padding: 1rem; background: var(--bg); border-radius: 12px; border-left: 4px solid ${subjectColor};">
+        <h4 style="margin: 0 0 0.5rem 0; color: ${subjectColor};">${subjectNames[subject] || subject} — ${completedCourses}/${totalCourses} cours (${progressPercent}%)</h4>
+        <div style="background: #eee; border-radius: 8px; height: 8px; margin-bottom: 0.8rem;">
+          <div style="background: ${subjectColor}; width: ${progressPercent}%; height: 100%; border-radius: 8px; transition: width 0.3s;"></div>
+        </div>`;
+
+      // Liste des cours avec statut
+      html += '<div style="display: flex; flex-direction: column; gap: 0.3rem;">';
+      courses.forEach(c => {
+        const icon = c.status === 'completed' ? '✅' : c.status === 'in_progress' ? '🔄' : '⬜';
+        const scoreText = c.score !== null && c.score !== undefined ? ` (${c.score}%)` : '';
+        const dateText = c.completedAt ? ` — ${new Date(c.completedAt).toLocaleDateString('fr-FR')}` : '';
+        html += `<div style="font-size: 0.85rem; padding: 0.3rem 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>${icon}</span>
+          <span style="flex:1;">${c.title}</span>
+          <span style="color: var(--text-muted); font-size: 0.75rem;">${scoreText}${dateText}</span>
+        </div>`;
+      });
+      html += '</div>';
+
+      // Compétences (tags) avec barres de progression
+      const tagEntries = Object.entries(competencies);
+      if (tagEntries.length > 0) {
+        html += '<div style="margin-top: 0.8rem;"><strong style="font-size: 0.8rem;">Compétences détaillées :</strong>';
+        html += '<div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem;">';
+        tagEntries.forEach(([tag, vals]) => {
+          const rate = vals.done > 0 ? Math.round(vals.correct / vals.done * 100) : 0;
+          const bgColor = rate >= 80 ? '#00B894' : rate >= 50 ? '#FDCB6E' : vals.done === 0 ? '#DFE6E9' : '#E17055';
+          html += `<span style="font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 10px; background: ${bgColor}20; border: 1px solid ${bgColor}; color: ${bgColor === '#DFE6E9' ? '#636E72' : bgColor};" title="${vals.correct}/${vals.done} correct sur ${vals.total} total">
+            ${tag} ${vals.done > 0 ? rate + '%' : '—'}
+          </span>`;
+        });
+        html += '</div></div>';
+      }
+
+      html += '</div>';
+    }
+
+    if (!html) html = '<p style="color: var(--text-muted);">Aucune donnée de compétences disponible.</p>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<p style="color: #E17055;">Erreur de chargement des compétences</p>';
+  }
+}
+
+async function loadChildCourseHistory(userId, childName) {
+  const container = document.getElementById('competency-detail-' + userId);
+  container.innerHTML = '<p style="text-align:center; padding:1rem;">Chargement de l\'historique...</p>';
+
+  try {
+    const res = await fetch('/api/parent/course-history/' + userId);
+    const data = await res.json();
+
+    const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths', techno: 'Techno', sciences: 'Sciences', culture: 'Culture', arts: 'Arts', informatique: 'Info' };
+
+    let html = `<h4 style="margin: 0.5rem 0;">📚 Historique des parcours de ${childName}</h4>`;
+
+    // Progression hebdomadaire
+    if (data.weeklyProgress.length > 0) {
+      html += '<div style="margin: 1rem 0; padding: 1rem; background: var(--bg); border-radius: 12px;"><strong>Progression hebdomadaire</strong>';
+      const weeks = {};
+      data.weeklyProgress.forEach(w => {
+        if (!weeks[w.week]) weeks[w.week] = [];
+        weeks[w.week].push(w);
+      });
+
+      for (const [week, subjects] of Object.entries(weeks)) {
+        html += `<div style="margin-top: 0.5rem; padding: 0.5rem; border-bottom: 1px solid var(--border);">
+          <strong style="font-size: 0.85rem;">${week}</strong>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.3rem;">`;
+        subjects.forEach(s => {
+          const rate = s.exercises_done > 0 ? Math.round(s.correct / s.exercises_done * 100) : 0;
+          html += `<span style="font-size: 0.75rem; padding: 0.2rem 0.5rem; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border);">
+            ${subjectNames[s.subject] || s.subject}: ${s.exercises_done} ex. (${rate}%)
+          </span>`;
+        });
+        html += '</div></div>';
+      }
+      html += '</div>';
+    }
+
+    // Liste des exercices récents
+    if (data.history.length > 0) {
+      html += '<div style="margin-top: 1rem;"><strong>Derniers exercices</strong>';
+      html += '<div style="display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.5rem; max-height: 40vh; overflow-y: auto;">';
+      data.history.forEach(h => {
+        const icon = h.score === 100 ? '✅' : '❌';
+        const date = h.completed_at ? new Date(h.completed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+        html += `<div style="font-size: 0.85rem; padding: 0.4rem 0.6rem; background: var(--bg); border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
+          <span>${icon}</span>
+          <span style="min-width: 50px; font-weight: 600; color: var(--text-muted); font-size: 0.75rem;">${subjectNames[h.subject] || h.subject}</span>
+          <span style="flex: 1;">${h.title}</span>
+          ${h.course_title ? `<span style="color: var(--text-muted); font-size: 0.7rem;">📖 ${h.course_title}</span>` : ''}
+          <span style="color: var(--text-muted); font-size: 0.7rem;">${date}</span>
+        </div>`;
+      });
+      html += '</div></div>';
+    } else {
+      html += '<p style="color: var(--text-muted); margin-top: 1rem;">Aucun exercice réalisé pour le moment.</p>';
+    }
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<p style="color: #E17055;">Erreur de chargement de l\'historique</p>';
   }
 }
 
@@ -2323,9 +2486,16 @@ function openAudioLesson(lesson) {
 
 function toggleAudioPlay() {
   if (speechPlaying) {
-    stopSpeech();
+    pauseTTS();
+    speechPlaying = false;
     document.getElementById('audio-play-btn').textContent = '▶️ Reprendre';
+  } else if (ttsChunks.length > 0 && ttsCurrentChunk < ttsChunks.length) {
+    // Reprendre là où on en était
+    resumeTTS();
+    speechPlaying = true;
+    document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
   } else {
+    // Démarrer depuis le début
     startSpeech();
     document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
   }
@@ -2338,68 +2508,45 @@ function startSpeech() {
     return;
   }
 
-  window.speechSynthesis.cancel();
-
   const text = currentAudioLesson.content_text || '';
-  speechUtterance = new SpeechSynthesisUtterance(text);
-  speechUtterance.lang = currentAudioLesson.title && currentAudioLesson.title.match(/english|anglais|business/i) ? 'en-US' : 'fr-FR';
-  speechUtterance.rate = audioSpeed;
-  speechUtterance.pitch = 1;
+  const isEnglish = currentAudioLesson.title && currentAudioLesson.title.match(/english|anglais|business/i);
+  const lang = isEnglish ? 'en' : 'fr';
 
-  // Try to find a good voice
-  const voices = window.speechSynthesis.getVoices();
-  const preferredLang = speechUtterance.lang;
-  const voice = voices.find(v => v.lang === preferredLang && v.localService) ||
-                voices.find(v => v.lang.startsWith(preferredLang.split('-')[0])) ||
-                voices[0];
-  if (voice) speechUtterance.voice = voice;
-
-  speechUtterance.onend = () => {
-    speechPlaying = false;
-    document.getElementById('audio-play-btn').textContent = '🔄 Réécouter';
-  };
-
-  speechUtterance.onerror = (e) => {
-    if (e.error !== 'canceled') {
-      speechPlaying = false;
-      document.getElementById('audio-play-btn').textContent = '▶️ Écouter';
-    }
-  };
-
-  window.speechSynthesis.speak(speechUtterance);
+  // Utiliser le moteur TTS amélioré avec chunks pour permettre avance/recul
+  ttsRate = audioSpeed;
+  speakText(text, lang);
   speechPlaying = true;
 }
 
 function stopSpeech() {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-  }
+  stopTTS();
   speechPlaying = false;
 }
 
 function audioRewind() {
-  // Web Speech API doesn't support seeking, so restart
-  if (speechPlaying) {
-    stopSpeech();
-    startSpeech();
+  ttsRewind();
+  if (!speechPlaying) {
+    speechPlaying = true;
+    document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
   }
 }
 
 function audioForward() {
-  // Web Speech API doesn't support seeking - skip to end
-  stopSpeech();
-  document.getElementById('audio-play-btn').textContent = '▶️ Écouter';
+  ttsForward();
+  if (!speechPlaying) {
+    speechPlaying = true;
+    document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
+  }
 }
 
-function setAudioSpeed(rate) {
+function setAudioSpeed(rate, btn) {
   audioSpeed = rate;
-  document.querySelectorAll('.audio-speed-btn').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
+  document.querySelectorAll('.audio-speed-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
 
-  // If playing, restart with new speed
+  // Appliquer la nouvelle vitesse au TTS
+  setTTSRate(rate);
   if (speechPlaying) {
-    stopSpeech();
-    startSpeech();
     document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
   }
 }
@@ -2512,50 +2659,168 @@ function startProgramBlock(index, type, subject) {
 
 // ==================
 // TEXT-TO-SPEECH (TTS) - Compatible smartphone
-// Voix anglophone pour l'anglais, francophone pour le reste
+// Découpage en chunks pour permettre avance/recul
+// Voix anglophone NATIVE pour l'anglais
 // ==================
 let ttsUtterance = null;
 let ttsPlaying = false;
+let ttsChunks = [];
+let ttsCurrentChunk = 0;
+let ttsCurrentLang = 'fr';
+let ttsRate = 0.9;
+let ttsVoicesLoaded = false;
 
 function initTTS() {
-  // Forcer le chargement des voix (nécessaire sur certains navigateurs mobiles)
-  if ('speechSynthesis' in window) {
-    speechSynthesis.getVoices();
-    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
-  }
+  if (!('speechSynthesis' in window)) return;
+
+  // Charger les voix (asynchrone sur certains navigateurs)
+  const loadVoices = () => {
+    const voices = speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      ttsVoicesLoaded = true;
+      console.log('TTS: ' + voices.length + ' voix disponibles');
+      // Logger les voix anglaises disponibles pour debug
+      const enVoices = voices.filter(v => v.lang.startsWith('en'));
+      console.log('TTS voix anglaises:', enVoices.map(v => v.name + ' (' + v.lang + ')').join(', '));
+    }
+  };
+
+  loadVoices();
+  speechSynthesis.onvoiceschanged = loadVoices;
+
+  // Workaround mobile : relancer la synthèse si interrompue par le verrouillage écran
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && ttsPlaying) {
+      // L'écran revient : reprendre la lecture si elle a été coupée
+      if (speechSynthesis.paused) {
+        speechSynthesis.resume();
+      } else if (!speechSynthesis.speaking && ttsCurrentChunk < ttsChunks.length) {
+        // La synthèse a été coupée silencieusement, relancer le chunk courant
+        speakCurrentChunk();
+      }
+    }
+  });
+
+  // Workaround Chrome : le navigateur coupe après ~15s de synthèse
+  // On découpe le texte en phrases pour éviter ce bug
+  setInterval(() => {
+    if (ttsPlaying && speechSynthesis.speaking) {
+      speechSynthesis.pause();
+      speechSynthesis.resume();
+    }
+  }, 10000);
 }
 
 function getVoiceForLang(lang) {
   const voices = speechSynthesis.getVoices();
   if (lang === 'en') {
-    // Chercher une voix anglaise native (pas française)
-    const enVoice = voices.find(v => v.lang.startsWith('en') && !v.name.includes('French'))
-      || voices.find(v => v.lang.startsWith('en-GB'))
-      || voices.find(v => v.lang.startsWith('en-US'))
-      || voices.find(v => v.lang.startsWith('en'));
-    return enVoice || null;
+    // Priorité : voix anglaise NATIVE (pas une voix française qui parle anglais)
+    // 1. Chercher une voix premium/naturelle en-GB ou en-US
+    const premium = voices.find(v =>
+      v.lang.startsWith('en') &&
+      !v.lang.includes('IN') && // pas indien
+      (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Daniel') ||
+       v.name.includes('Karen') || v.name.includes('Moira') || v.name.includes('Alex') ||
+       v.name.includes('Rishi') || v.name.includes('Fiona') || v.name.includes('Veena'))
+    );
+    if (premium) return premium;
+
+    // 2. Voix en-GB ou en-US non-locale (souvent meilleure qualité)
+    const remote = voices.find(v => (v.lang === 'en-GB' || v.lang === 'en-US') && !v.localService);
+    if (remote) return remote;
+
+    // 3. N'importe quelle voix en-GB
+    const enGB = voices.find(v => v.lang === 'en-GB');
+    if (enGB) return enGB;
+
+    // 4. N'importe quelle voix en-US
+    const enUS = voices.find(v => v.lang === 'en-US');
+    if (enUS) return enUS;
+
+    // 5. N'importe quelle voix anglaise (sauf voix françaises qui s'appellent "English")
+    const anyEn = voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('french'));
+    if (anyEn) return anyEn;
+
+    // 6. Fallback absolu
+    return voices.find(v => v.lang.startsWith('en')) || null;
   }
-  // Français
-  const frVoice = voices.find(v => v.lang.startsWith('fr'))
-    || voices.find(v => v.lang === 'fr-FR');
-  return frVoice || null;
+
+  // Français : chercher une voix française native
+  const frPremium = voices.find(v => v.lang === 'fr-FR' &&
+    (v.name.includes('Google') || v.name.includes('Thomas') || v.name.includes('Amelie') || v.name.includes('Audrey'))
+  );
+  if (frPremium) return frPremium;
+
+  return voices.find(v => v.lang === 'fr-FR')
+    || voices.find(v => v.lang.startsWith('fr'))
+    || null;
+}
+
+// Découper le texte en phrases pour permettre la navigation
+function splitTextIntoChunks(text) {
+  // Découper par phrases (. ! ? ou retour à la ligne)
+  const raw = text.split(/(?<=[.!?])\s+|\n+/).filter(s => s.trim().length > 3);
+  // Regrouper les phrases courtes en chunks de ~100-200 caractères
+  const chunks = [];
+  let current = '';
+  for (const sentence of raw) {
+    if (current.length + sentence.length > 200 && current.length > 0) {
+      chunks.push(current.trim());
+      current = sentence;
+    } else {
+      current += (current ? ' ' : '') + sentence;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks.length > 0 ? chunks : [text];
 }
 
 function speakText(text, lang) {
   if (!('speechSynthesis' in window)) return;
-
   stopTTS();
 
-  ttsUtterance = new SpeechSynthesisUtterance(text);
-  const voice = getVoiceForLang(lang || 'fr');
-  if (voice) ttsUtterance.voice = voice;
-  ttsUtterance.lang = lang === 'en' ? 'en-GB' : 'fr-FR';
-  ttsUtterance.rate = 0.9;
+  ttsCurrentLang = lang || 'fr';
+  ttsChunks = splitTextIntoChunks(text);
+  ttsCurrentChunk = 0;
+  ttsPlaying = true;
+
+  speakCurrentChunk();
+}
+
+function speakCurrentChunk() {
+  if (ttsCurrentChunk >= ttsChunks.length) {
+    ttsPlaying = false;
+    // Mettre à jour le bouton s'il existe
+    const btn = document.getElementById('tts-course-btn');
+    if (btn) btn.innerHTML = '🔊 Réécouter le cours';
+    return;
+  }
+
+  speechSynthesis.cancel();
+
+  ttsUtterance = new SpeechSynthesisUtterance(ttsChunks[ttsCurrentChunk]);
+  const voice = getVoiceForLang(ttsCurrentLang);
+  if (voice) {
+    ttsUtterance.voice = voice;
+    console.log('TTS voix utilisée:', voice.name, voice.lang);
+  }
+  ttsUtterance.lang = ttsCurrentLang === 'en' ? 'en-GB' : 'fr-FR';
+  ttsUtterance.rate = ttsRate;
   ttsUtterance.pitch = 1;
 
-  ttsUtterance.onstart = () => { ttsPlaying = true; };
-  ttsUtterance.onend = () => { ttsPlaying = false; };
-  ttsUtterance.onerror = () => { ttsPlaying = false; };
+  ttsUtterance.onend = () => {
+    if (ttsPlaying) {
+      ttsCurrentChunk++;
+      speakCurrentChunk();
+    }
+  };
+
+  ttsUtterance.onerror = (e) => {
+    if (e.error !== 'canceled' && e.error !== 'interrupted') {
+      console.error('TTS error:', e.error);
+      ttsPlaying = false;
+    }
+  };
 
   speechSynthesis.speak(ttsUtterance);
 }
@@ -2565,6 +2830,50 @@ function stopTTS() {
     speechSynthesis.cancel();
   }
   ttsPlaying = false;
+  ttsChunks = [];
+  ttsCurrentChunk = 0;
+}
+
+function pauseTTS() {
+  if ('speechSynthesis' in window && speechSynthesis.speaking) {
+    speechSynthesis.pause();
+    ttsPlaying = false;
+  }
+}
+
+function resumeTTS() {
+  if ('speechSynthesis' in window && speechSynthesis.paused) {
+    speechSynthesis.resume();
+    ttsPlaying = true;
+  } else if (ttsChunks.length > 0 && ttsCurrentChunk < ttsChunks.length) {
+    ttsPlaying = true;
+    speakCurrentChunk();
+  }
+}
+
+// Avancer de ~15 secondes (environ 2-3 chunks)
+function ttsForward() {
+  if (ttsChunks.length === 0) return;
+  speechSynthesis.cancel();
+  ttsCurrentChunk = Math.min(ttsCurrentChunk + 3, ttsChunks.length - 1);
+  if (ttsPlaying) speakCurrentChunk();
+}
+
+// Reculer de ~15 secondes
+function ttsRewind() {
+  if (ttsChunks.length === 0) return;
+  speechSynthesis.cancel();
+  ttsCurrentChunk = Math.max(ttsCurrentChunk - 3, 0);
+  if (ttsPlaying) speakCurrentChunk();
+}
+
+// Changer la vitesse
+function setTTSRate(rate) {
+  ttsRate = rate;
+  if (ttsPlaying) {
+    speechSynthesis.cancel();
+    speakCurrentChunk();
+  }
 }
 
 function speakCourseContent(subject) {
@@ -2660,27 +2969,54 @@ async function loadAdultTips() {
   }
 }
 
-// Ajouter un bouton lecture vocale dans les cours
+// Ajouter un panneau de contrôle audio dans les cours
 function addTTSButton(subject) {
   const header = document.querySelector('#learn-course-detail .course-body');
   if (!header) return;
 
   // Ne pas ajouter si déjà présent
-  if (document.getElementById('tts-course-btn')) return;
+  if (document.getElementById('tts-course-controls')) return;
 
-  const btn = document.createElement('button');
-  btn.id = 'tts-course-btn';
-  btn.className = 'btn-tts';
-  btn.innerHTML = '🔊 Écouter le cours';
-  btn.onclick = () => {
+  const controls = document.createElement('div');
+  controls.id = 'tts-course-controls';
+  controls.className = 'tts-controls';
+  controls.innerHTML = `
+    <div class="tts-controls-row">
+      <button class="tts-btn tts-btn-seek" onclick="ttsRewind()" title="Reculer">⏪</button>
+      <button class="tts-btn tts-btn-main" id="tts-course-btn" title="Lecture">🔊 Écouter</button>
+      <button class="tts-btn tts-btn-seek" onclick="ttsForward()" title="Avancer">⏩</button>
+      <button class="tts-btn tts-btn-stop" onclick="stopTTS(); document.getElementById('tts-course-btn').innerHTML='🔊 Écouter'" title="Stop">⏹️</button>
+    </div>
+    <div class="tts-speed-row">
+      <span style="font-size: 0.75rem; color: var(--text-muted);">Vitesse :</span>
+      <button class="tts-speed-btn" onclick="setTTSRate(0.75)">0.75x</button>
+      <button class="tts-speed-btn active" onclick="setTTSRate(1)">1x</button>
+      <button class="tts-speed-btn" onclick="setTTSRate(1.25)">1.25x</button>
+    </div>
+  `;
+
+  // Bouton play/pause principal
+  const playBtn = controls.querySelector('#tts-course-btn');
+  playBtn.onclick = () => {
     if (ttsPlaying) {
-      stopTTS();
-      btn.innerHTML = '🔊 Écouter le cours';
+      pauseTTS();
+      playBtn.innerHTML = '▶️ Reprendre';
+    } else if (ttsChunks.length > 0 && ttsCurrentChunk < ttsChunks.length) {
+      resumeTTS();
+      playBtn.innerHTML = '⏸️ Pause';
     } else {
       speakCourseContent(subject);
-      btn.innerHTML = '⏹️ Arrêter la lecture';
+      playBtn.innerHTML = '⏸️ Pause';
     }
   };
 
-  header.parentNode.insertBefore(btn, header);
+  // Speed buttons
+  controls.querySelectorAll('.tts-speed-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      controls.querySelectorAll('.tts-speed-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  header.parentNode.insertBefore(controls, header);
 }

@@ -177,4 +177,112 @@ router.get('/birthdays', (req, res) => {
   res.json(results);
 });
 
+// GET /api/parent/competencies/:userId - Suivi des compétences par matière
+router.get('/competencies/:userId', requireParent, (req, res) => {
+  const db = req.app.locals.db;
+  const { userId } = req.params;
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+  if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+  // Stats par matière avec détail des tags/compétences
+  const stats = db.prepare('SELECT * FROM user_stats WHERE user_id = ?').all(userId);
+
+  // Cours complétés avec tags (= compétences)
+  const completedCourses = db.prepare(`
+    SELECT c.id, c.subject, c.title, c.level, c.difficulty, c.tags, c.order_index,
+           up.status, up.completed_at, up.score
+    FROM courses c
+    LEFT JOIN user_progress up ON up.course_id = c.id AND up.user_id = ?
+    WHERE c.level = ? OR c.level IS NULL
+    ORDER BY c.subject, c.order_index
+  `).all(userId, user.classe);
+
+  // Exercices par tag (compétences granulaires)
+  const exercisesByTag = db.prepare(`
+    SELECT e.subject, e.tags, e.difficulty,
+           up.score, up.status
+    FROM exercises e
+    LEFT JOIN user_progress up ON up.exercise_id = e.id AND up.user_id = ?
+    WHERE e.level = ? OR e.level IS NULL
+  `).all(userId, user.classe);
+
+  // Calculer les compétences par matière et par tag
+  const competencies = {};
+  exercisesByTag.forEach(ex => {
+    const tags = JSON.parse(ex.tags || '[]');
+    if (!competencies[ex.subject]) competencies[ex.subject] = {};
+
+    tags.forEach(tag => {
+      if (!competencies[ex.subject][tag]) {
+        competencies[ex.subject][tag] = { total: 0, done: 0, correct: 0 };
+      }
+      competencies[ex.subject][tag].total++;
+      if (ex.status === 'completed') {
+        competencies[ex.subject][tag].done++;
+        if (ex.score === 100) competencies[ex.subject][tag].correct++;
+      }
+    });
+  });
+
+  // Organiser les cours par matière
+  const coursesBySubject = {};
+  completedCourses.forEach(c => {
+    if (!coursesBySubject[c.subject]) coursesBySubject[c.subject] = [];
+    coursesBySubject[c.subject].push({
+      id: c.id,
+      title: c.title,
+      difficulty: c.difficulty,
+      status: c.status || 'not_started',
+      completedAt: c.completed_at,
+      score: c.score,
+      tags: JSON.parse(c.tags || '[]')
+    });
+  });
+
+  res.json({
+    child: { id: user.id, name: user.name, avatar: user.avatar, classe: user.classe },
+    stats,
+    competencies,
+    coursesBySubject
+  });
+});
+
+// GET /api/parent/course-history/:userId - Historique complet des parcours suivis
+router.get('/course-history/:userId', requireParent, (req, res) => {
+  const db = req.app.locals.db;
+  const { userId } = req.params;
+
+  // Tous les exercices faits avec détails
+  const history = db.prepare(`
+    SELECT e.subject, e.title, e.type, e.difficulty, e.tags,
+           c.title as course_title,
+           up.score, up.status, up.completed_at,
+           up.attempts
+    FROM user_progress up
+    JOIN exercises e ON up.exercise_id = e.id
+    LEFT JOIN courses c ON e.course_id = c.id
+    WHERE up.user_id = ?
+    ORDER BY up.completed_at DESC
+    LIMIT 100
+  `).all(userId);
+
+  // Progression par semaine
+  const weeklyProgress = db.prepare(`
+    SELECT
+      strftime('%Y-W%W', up.completed_at) as week,
+      e.subject,
+      COUNT(*) as exercises_done,
+      SUM(CASE WHEN up.score = 100 THEN 1 ELSE 0 END) as correct
+    FROM user_progress up
+    JOIN exercises e ON up.exercise_id = e.id
+    WHERE up.user_id = ? AND up.completed_at IS NOT NULL
+    GROUP BY week, e.subject
+    ORDER BY week DESC
+    LIMIT 50
+  `).all(userId);
+
+  res.json({ history, weeklyProgress });
+});
+
 module.exports = router;

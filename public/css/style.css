@@ -2590,7 +2590,7 @@ body {
 }
 
 /* ============================================
-   TTS - BOUTON LECTURE VOCALE
+   TTS - CONTRÔLES LECTURE VOCALE
    ============================================ */
 .btn-tts {
   display: inline-flex;
@@ -2611,6 +2611,102 @@ body {
 
 .btn-tts:hover {
   background: var(--primary);
+}
+
+.tts-controls {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tts-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.tts-btn {
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.2s, background 0.2s;
+  font-family: var(--font);
+}
+
+.tts-btn:active { transform: scale(0.9); }
+
+.tts-btn-main {
+  background: white;
+  color: #764ba2;
+  padding: 0.6rem 1.2rem;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.tts-btn-seek {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+}
+
+.tts-btn-seek:hover { background: rgba(255,255,255,0.35); }
+
+.tts-btn-stop {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  width: 36px;
+  height: 36px;
+}
+
+.tts-speed-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.tts-speed-btn {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 12px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+.tts-speed-btn.active {
+  background: white;
+  color: #764ba2;
+  font-weight: 700;
+}
+
+/* ============================================
+   COMPÉTENCES PARENT
+   ============================================ */
+.competency-selector {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.8rem 0;
+  flex-wrap: wrap;
+}
+
+.competency-detail {
+  margin-top: 0.5rem;
+}
+
+.competency-subject h4 {
+  font-size: 0.95rem;
 }
 
 .btn-speak {

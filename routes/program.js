@@ -181,12 +181,12 @@ async function generateDailyProgram(db, user, today) {
   const mood = db.prepare('SELECT * FROM daily_mood WHERE user_id = ? AND date = ?').get(user.id, today);
   const interests = JSON.parse(user.interests || '[]');
 
-  // Trouver les matières faibles
+  // Trouver les matières faibles (< 60% sur min 3 exercices)
   const weakSubjects = stats
     .filter(s => s.total_exercises > 3 && (s.correct_answers / s.total_exercises) < 0.6)
     .map(s => s.subject);
 
-  // Trouver les matières fortes
+  // Trouver les matières fortes (>= 80% sur min 3 exercices)
   const strongSubjects = stats
     .filter(s => s.total_exercises > 3 && (s.correct_answers / s.total_exercises) >= 0.8)
     .map(s => s.subject);
@@ -195,59 +195,87 @@ async function generateDailyProgram(db, user, today) {
   const energy = mood?.energy || 'moyen';
   const sessionMinutes = energy === 'a fond' ? 45 : energy === 'tranquille' ? 30 : 40;
 
+  // Adapter la difficulté selon l'humeur
+  const moodState = mood?.mood || 'bien';
+  const difficultyModifier = moodState === 'fatigue' ? -1 : moodState === 'super bien' ? 1 : 0;
+
+  // Matière demandée par l'élève au questionnaire
+  const wantedSubject = mood?.want_to_learn;
+  const hasSpecificRequest = wantedSubject && wantedSubject !== 'un peu de tout';
+
   // Construire les blocs
   const blocks = [];
 
-  // Bloc 1 : Réveil (matière forte pour prendre confiance) - 10 min
-  const startSubject = strongSubjects.length > 0
-    ? strongSubjects[Math.floor(Math.random() * strongSubjects.length)]
-    : getDefaultSubjects(user)[0];
+  // Bloc 1 : Si l'élève a demandé une matière, on la met en premier (respect du choix)
+  let startSubject;
+  if (hasSpecificRequest) {
+    startSubject = wantedSubject;
+  } else if (strongSubjects.length > 0) {
+    startSubject = strongSubjects[Math.floor(Math.random() * strongSubjects.length)];
+  } else {
+    startSubject = getDefaultSubjects(user)[0];
+  }
 
   blocks.push({
     type: 'lesson',
     subject: startSubject,
-    title: 'Échauffement',
-    description: `On commence en douceur avec ${getSubjectName(startSubject)}`,
-    duration: 10,
-    icon: getSubjectIcon(startSubject)
+    title: hasSpecificRequest ? 'Ton choix du jour' : 'Échauffement',
+    description: hasSpecificRequest
+      ? `Tu as choisi ${getSubjectName(startSubject)}, c'est parti !`
+      : `On commence en douceur avec ${getSubjectName(startSubject)}`,
+    duration: moodState === 'fatigue' ? 8 : 10,
+    icon: getSubjectIcon(startSubject),
+    difficulty: difficultyModifier
   });
 
-  // Bloc 2 : Exercices de la matière forte - 8 min
+  // Bloc 2 : Exercices de la matière choisie/forte
   blocks.push({
     type: 'exercises',
     subject: startSubject,
     title: 'Exercices rapides',
-    description: 'Montre ce que tu sais !',
-    duration: 8,
-    icon: '✏️'
+    description: moodState === 'fatigue' ? 'Quelques exercices tranquilles' : 'Montre ce que tu sais !',
+    duration: moodState === 'fatigue' ? 6 : 8,
+    icon: '✏️',
+    difficulty: difficultyModifier
   });
 
-  // Bloc 3 : Matière faible (ou nouvelle) - 12 min
-  const focusSubject = weakSubjects.length > 0
-    ? weakSubjects[0]
-    : getDefaultSubjects(user)[1];
+  // Bloc 3 : Matière faible (ou 2ème matière) - sauf si fatigué et session courte
+  let focusSubject;
+  if (hasSpecificRequest && weakSubjects.length > 0) {
+    // L'élève a déjà son choix en bloc 1, on ajoute la matière faible
+    focusSubject = weakSubjects[0];
+  } else if (weakSubjects.length > 0) {
+    focusSubject = weakSubjects[0];
+  } else {
+    const defaults = getDefaultSubjects(user);
+    focusSubject = defaults.find(s => s !== startSubject) || defaults[1];
+  }
 
-  blocks.push({
-    type: 'lesson',
-    subject: focusSubject,
-    title: 'Focus du jour',
-    description: `On progresse ensemble en ${getSubjectName(focusSubject)}`,
-    duration: 12,
-    icon: getSubjectIcon(focusSubject)
-  });
+  if (sessionMinutes >= 30) {
+    blocks.push({
+      type: 'lesson',
+      subject: focusSubject,
+      title: 'Focus du jour',
+      description: `On progresse ensemble en ${getSubjectName(focusSubject)}`,
+      duration: moodState === 'fatigue' ? 8 : 12,
+      icon: getSubjectIcon(focusSubject),
+      difficulty: difficultyModifier
+    });
 
-  // Bloc 4 : Exercices focus - 10 min
-  blocks.push({
-    type: 'exercises',
-    subject: focusSubject,
-    title: 'Entraînement',
-    description: 'Des exercices adaptés à ton niveau',
-    duration: 10,
-    icon: '💪'
-  });
+    // Bloc 4 : Exercices focus
+    blocks.push({
+      type: 'exercises',
+      subject: focusSubject,
+      title: 'Entraînement',
+      description: 'Des exercices adaptés à ton niveau',
+      duration: moodState === 'fatigue' ? 7 : 10,
+      icon: '💪',
+      difficulty: difficultyModifier
+    });
+  }
 
-  // Bloc 5 : Découverte / Passion - 5 min (si énergie suffisante)
-  if (sessionMinutes >= 40) {
+  // Bloc 5 : Découverte / Passion (si énergie suffisante)
+  if (sessionMinutes >= 35) {
     const passion = mood?.passion_today || interests[0] || 'robotique';
     blocks.push({
       type: 'discovery',
@@ -260,14 +288,14 @@ async function generateDailyProgram(db, user, today) {
     });
   }
 
-  // Bloc spécial Sacha : robotique + informatique
-  if (user.name === 'Sacha') {
+  // Blocs spéciaux par enfant (seulement si énergie le permet)
+  if (user.name === 'Sacha' && sessionMinutes >= 35) {
     blocks.push({
       type: 'lesson',
       subject: 'informatique',
       title: 'Informatique du jour',
       description: 'Logique, code et architecture !',
-      duration: 10,
+      duration: moodState === 'fatigue' ? 7 : 10,
       icon: '💻'
     });
     blocks.push({
@@ -275,31 +303,29 @@ async function generateDailyProgram(db, user, today) {
       subject: 'techno',
       title: 'Robotique du jour',
       description: 'Continue ton parcours robot !',
-      duration: 10,
+      duration: moodState === 'fatigue' ? 7 : 10,
       icon: '🤖'
     });
   }
 
-  // Bloc spécial Adan : arts créatifs
-  if (user.name === 'Adan') {
+  if (user.name === 'Adan' && sessionMinutes >= 35) {
     blocks.push({
       type: 'lesson',
       subject: 'arts',
       title: 'Atelier créatif',
       description: 'Peinture, sculpture, décors !',
-      duration: 10,
+      duration: moodState === 'fatigue' ? 7 : 10,
       icon: '🎨'
     });
   }
 
-  // Bloc spécial Ilan : culture & géopolitique
-  if (user.name === 'Ilan') {
+  if (user.name === 'Ilan' && sessionMinutes >= 35) {
     blocks.push({
       type: 'lesson',
       subject: 'culture',
       title: 'Culture du jour',
       description: 'Géopolitique, histoire, société !',
-      duration: 10,
+      duration: moodState === 'fatigue' ? 7 : 10,
       icon: '🌍'
     });
   }
