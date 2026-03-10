@@ -260,8 +260,16 @@ async function generateDailyProgram(db, user, today) {
     });
   }
 
-  // Bloc spécial Sacha : robotique
+  // Bloc spécial Sacha : robotique + informatique
   if (user.name === 'Sacha') {
+    blocks.push({
+      type: 'lesson',
+      subject: 'informatique',
+      title: 'Informatique du jour',
+      description: 'Logique, code et architecture !',
+      duration: 10,
+      icon: '💻'
+    });
     blocks.push({
       type: 'lesson',
       subject: 'techno',
@@ -269,6 +277,30 @@ async function generateDailyProgram(db, user, today) {
       description: 'Continue ton parcours robot !',
       duration: 10,
       icon: '🤖'
+    });
+  }
+
+  // Bloc spécial Adan : arts créatifs
+  if (user.name === 'Adan') {
+    blocks.push({
+      type: 'lesson',
+      subject: 'arts',
+      title: 'Atelier créatif',
+      description: 'Peinture, sculpture, décors !',
+      duration: 10,
+      icon: '🎨'
+    });
+  }
+
+  // Bloc spécial Ilan : culture & géopolitique
+  if (user.name === 'Ilan') {
+    blocks.push({
+      type: 'lesson',
+      subject: 'culture',
+      title: 'Culture du jour',
+      description: 'Géopolitique, histoire, société !',
+      duration: 10,
+      icon: '🌍'
     });
   }
 
@@ -286,18 +318,19 @@ function generateFallbackProgram(db, user) {
 }
 
 function getDefaultSubjects(user) {
-  const base = ['francais', 'maths', 'anglais'];
-  if (user.name === 'Sacha') return ['techno', 'maths', 'francais'];
-  return base;
+  if (user.name === 'Sacha') return ['informatique', 'techno', 'maths', 'francais'];
+  if (user.name === 'Adan') return ['arts', 'francais', 'maths', 'anglais'];
+  if (user.name === 'Ilan') return ['culture', 'maths', 'anglais', 'francais'];
+  return ['francais', 'maths', 'anglais'];
 }
 
 function getSubjectName(s) {
-  const names = { francais: 'Français', anglais: 'Anglais', maths: 'Maths', techno: 'Techno & Robotique', sciences: 'Sciences', decouverte: 'Découverte' };
+  const names = { francais: 'Français', anglais: 'Anglais', maths: 'Maths', techno: 'Techno & Robotique', sciences: 'Sciences', culture: 'Culture & Géo', arts: 'Arts Créatifs', informatique: 'Informatique', decouverte: 'Découverte' };
   return names[s] || s;
 }
 
 function getSubjectIcon(s) {
-  const icons = { francais: '📝', anglais: '🇬🇧', maths: '🔢', techno: '🤖', sciences: '🔬', decouverte: '🔭' };
+  const icons = { francais: '📝', anglais: '🇬🇧', maths: '🔢', techno: '🤖', sciences: '🔬', culture: '🌍', arts: '🎨', informatique: '💻', decouverte: '🔭' };
   return icons[s] || '📚';
 }
 

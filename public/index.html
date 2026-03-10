@@ -129,6 +129,21 @@
               <span class="subject-name">Sciences</span>
               <div id="progress-sciences" class="progress-mini"></div>
             </button>
+            <button class="subject-card subject-culture" onclick="selectSubject('culture')">
+              <span class="subject-icon">🌍</span>
+              <span class="subject-name">Culture & Géo</span>
+              <div id="progress-culture" class="progress-mini"></div>
+            </button>
+            <button class="subject-card subject-arts" onclick="selectSubject('arts')">
+              <span class="subject-icon">🎨</span>
+              <span class="subject-name">Arts Créatifs</span>
+              <div id="progress-arts" class="progress-mini"></div>
+            </button>
+            <button class="subject-card subject-informatique" onclick="selectSubject('informatique')">
+              <span class="subject-icon">💻</span>
+              <span class="subject-name">Informatique</span>
+              <div id="progress-informatique" class="progress-mini"></div>
+            </button>
             <button class="subject-card subject-decouverte" onclick="openDecouverte()">
               <span class="subject-icon">🔭</span>
               <span class="subject-name">Découverte</span>
@@ -213,6 +228,9 @@
             <button class="chat-subject-btn" data-subject="anglais" onclick="setChatSubject(this, 'anglais')">🇬🇧 Anglais</button>
             <button class="chat-subject-btn" data-subject="maths" onclick="setChatSubject(this, 'maths')">🔢 Maths</button>
             <button class="chat-subject-btn" data-subject="techno" onclick="setChatSubject(this, 'techno')">🤖 Robot</button>
+            <button class="chat-subject-btn" data-subject="culture" onclick="setChatSubject(this, 'culture')">🌍 Culture</button>
+            <button class="chat-subject-btn" data-subject="arts" onclick="setChatSubject(this, 'arts')">🎨 Arts</button>
+            <button class="chat-subject-btn" data-subject="informatique" onclick="setChatSubject(this, 'informatique')">💻 Info</button>
           </div>
           <div id="chat-messages" class="chat-messages">
             <div class="chat-bubble assistant">
@@ -363,6 +381,9 @@
               <button class="mood-subject-btn" onclick="selectMood('want_to_learn', this, 'francais')">📝 Français</button>
               <button class="mood-subject-btn" onclick="selectMood('want_to_learn', this, 'anglais')">🇬🇧 Anglais</button>
               <button class="mood-subject-btn" onclick="selectMood('want_to_learn', this, 'maths')">🔢 Maths</button>
+              <button class="mood-subject-btn" onclick="selectMood('want_to_learn', this, 'culture')">🌍 Culture</button>
+              <button class="mood-subject-btn" onclick="selectMood('want_to_learn', this, 'arts')">🎨 Arts</button>
+              <button class="mood-subject-btn" onclick="selectMood('want_to_learn', this, 'informatique')">💻 Info</button>
               <button class="mood-subject-btn" onclick="selectMood('want_to_learn', this, 'un peu de tout')">🎯 Un peu de tout</button>
             </div>
           </div>

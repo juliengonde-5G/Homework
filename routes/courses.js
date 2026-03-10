@@ -8,7 +8,10 @@ router.get('/subjects/list', (req, res) => {
     { id: 'anglais', name: 'Anglais', icon: '🇬🇧', color: '#E74C3C' },
     { id: 'maths', name: 'Mathématiques', icon: '🔢', color: '#2ECC71' },
     { id: 'techno', name: 'Techno & Robotique', icon: '🤖', color: '#FF6B35' },
-    { id: 'sciences', name: 'Sciences', icon: '🔬', color: '#9B59B6' }
+    { id: 'sciences', name: 'Sciences', icon: '🔬', color: '#9B59B6' },
+    { id: 'culture', name: 'Culture & Géopolitique', icon: '🌍', color: '#E67E22' },
+    { id: 'arts', name: 'Arts Créatifs', icon: '🎨', color: '#E91E63' },
+    { id: 'informatique', name: 'Informatique & Logique', icon: '💻', color: '#00BCD4' }
   ];
   res.json(subjects);
 });

@@ -2493,6 +2493,24 @@ body {
 }
 .subject-card.subject-sciences .subject-name { color: white; }
 
+.subject-card.subject-culture {
+  background: linear-gradient(135deg, #E67E22 0%, #D35400 100%);
+  color: white;
+}
+.subject-card.subject-culture .subject-name { color: white; }
+
+.subject-card.subject-arts {
+  background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%);
+  color: white;
+}
+.subject-card.subject-arts .subject-name { color: white; }
+
+.subject-card.subject-informatique {
+  background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);
+  color: white;
+}
+.subject-card.subject-informatique .subject-name { color: white; }
+
 /* ============================================
    PROGRAMME DU JOUR
    ============================================ */

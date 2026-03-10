@@ -743,7 +743,7 @@ let learnStep = 'list'; // 'list', 'lesson', 'exercises', 'complete'
 
 function selectSubject(subject) {
   currentSubject = subject;
-  const names = { francais: 'Français', anglais: 'Anglais', maths: 'Mathématiques', techno: 'Techno & Robotique', sciences: 'Sciences' };
+  const names = { francais: 'Français', anglais: 'Anglais', maths: 'Mathématiques', techno: 'Techno & Robotique', sciences: 'Sciences', culture: 'Culture & Géopolitique', arts: 'Arts Créatifs', informatique: 'Informatique & Logique' };
   document.getElementById('learn-title').textContent = names[subject] || subject;
   learnStep = 'list';
   loadLearnCourses(subject);
@@ -756,7 +756,7 @@ function learnGoBack() {
     learnStep = 'list';
     document.getElementById('learn-course-detail').classList.add('hidden');
     document.getElementById('learn-courses-list').classList.remove('hidden');
-    const names = { francais: 'Français', anglais: 'Anglais', maths: 'Mathématiques', techno: 'Techno & Robotique', sciences: 'Sciences' };
+    const names = { francais: 'Français', anglais: 'Anglais', maths: 'Mathématiques', techno: 'Techno & Robotique', sciences: 'Sciences', culture: 'Culture & Géopolitique', arts: 'Arts Créatifs', informatique: 'Informatique & Logique' };
     document.getElementById('learn-title').textContent = names[currentSubject] || currentSubject;
   } else if (learnStep === 'exercises') {
     // On ne revient pas en arrière pendant les exercices, on va à l'accueil
@@ -1630,7 +1630,7 @@ async function loadParentDashboard() {
 
     const content = document.getElementById('parent-content');
     content.innerHTML = dashboard.map((d, idx) => {
-      const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths' };
+      const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths', techno: 'Techno', sciences: 'Sciences', culture: 'Culture', arts: 'Arts', informatique: 'Info' };
 
       return `
         <div class="child-report">
@@ -1760,7 +1760,7 @@ function getScoreColor(score) {
 }
 
 function generatePedagogicalPlan(d) {
-  const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths' };
+  const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths', techno: 'Techno', sciences: 'Sciences', culture: 'Culture', arts: 'Arts', informatique: 'Info' };
   const plans = [];
 
   // Analyser chaque matière
@@ -1841,8 +1841,8 @@ function renderPerformanceChart(d) {
   const canvas = document.getElementById('chart-' + d.child.id);
   if (!canvas || typeof Chart === 'undefined') return;
 
-  const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths' };
-  const colors = { francais: '#4A90D9', anglais: '#E74C3C', maths: '#2ECC71' };
+  const subjectNames = { francais: 'Français', anglais: 'Anglais', maths: 'Maths', techno: 'Techno', sciences: 'Sciences', culture: 'Culture', arts: 'Arts', informatique: 'Info' };
+  const colors = { francais: '#4A90D9', anglais: '#E74C3C', maths: '#2ECC71', techno: '#FF6B35', sciences: '#9B59B6', culture: '#E67E22', arts: '#E91E63', informatique: '#00BCD4' };
 
   const datasets = d.stats.map(s => ({
     label: subjectNames[s.subject] || s.subject,

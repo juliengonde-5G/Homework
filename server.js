@@ -8,6 +8,10 @@ const { seedContent } = require('./database/seed-content');
 const { seedLearningPaths } = require('./database/seed-learning');
 const { seedRobotics } = require('./database/seed-robotics');
 const { seedSciences } = require('./database/seed-sciences');
+const { seedAnglais } = require('./database/seed-anglais');
+const { seedCulture } = require('./database/seed-culture');
+const { seedArts } = require('./database/seed-arts');
+const { seedInformatique } = require('./database/seed-informatique');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +22,10 @@ seedContent(db);
 seedLearningPaths(db);
 seedRobotics(db);
 seedSciences(db);
+seedAnglais(db);
+seedCulture(db);
+seedArts(db);
+seedInformatique(db);
 app.locals.db = db;
 
 // Middleware
@@ -45,6 +53,7 @@ app.use('/api/daily-mood', require('./routes/daily-mood'));
 app.use('/api/learning', require('./routes/learning'));
 app.use('/api/program', require('./routes/program'));
 app.use('/api/daily-tips', require('./routes/daily-tips'));
+app.use('/api/generate', require('./routes/generate'));
 
 // SPA fallback
 app.get('*', (req, res) => {
