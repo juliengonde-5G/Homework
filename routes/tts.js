@@ -20,7 +20,7 @@ router.post('/generate', (req, res) => {
     return res.status(400).json({ error: 'Texte requis' });
   }
 
-  const language = lang === 'en' ? 'en' : 'fr';
+  const language = lang === 'en' ? 'en-US' : 'fr';
 
   try {
     // google-tts-api supporte les textes longs en les découpant automatiquement
@@ -95,7 +95,7 @@ router.get('/single', (req, res) => {
   const { text, lang } = req.query;
   if (!text) return res.status(400).json({ error: 'Texte requis' });
 
-  const language = lang === 'en' ? 'en' : 'fr';
+  const language = lang === 'en' ? 'en-US' : 'fr';
 
   try {
     const url = googleTTS.getAudioUrl(text.substring(0, 200), {

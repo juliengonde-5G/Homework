@@ -172,14 +172,15 @@ function setupParentChatScreen() {
   `;
   chatSection.querySelector('.chat-subject-picker').innerHTML = `
     <button class="chat-subject-btn active" data-subject="" onclick="setChatSubject(this, '')">Libre</button>
+    <button class="chat-subject-btn" data-subject="business" onclick="setChatSubject(this, 'business')">💼 Business</button>
     <button class="chat-subject-btn" data-subject="competences" onclick="setChatSubject(this, 'competences')">🎯 Compétences</button>
-    <button class="chat-subject-btn" data-subject="organisation" onclick="setChatSubject(this, 'organisation')">📋 Organisation</button>
+    <button class="chat-subject-btn" data-subject="rh" onclick="setChatSubject(this, 'rh')">👥 RH & Management</button>
   `;
 
-  // Message d'accueil personnalisé
+  // Message d'accueil personnalisé orienté business
   document.getElementById('chat-messages').innerHTML = `
     <div class="chat-bubble assistant">
-      <p>Salut Ophélie ! Je suis ton assistant personnel. Tu peux me demander de t'aider à créer ton parcours de compétences, t'organiser, ou discuter de n'importe quel sujet. Qu'est-ce qui te ferait plaisir ? 😊</p>
+      <p>Salut Ophélie ! Je suis ton coach professionnel. Tu peux me demander de t'aider sur tes projets business, développer tes compétences métier, préparer tes réunions ou travailler sur ta stratégie. Qu'est-ce qu'on attaque aujourd'hui ?</p>
     </div>
   `;
 
@@ -842,8 +843,11 @@ function learnStartExercises() {
 async function loadExercises() {
   try {
     const res = await fetch(`/api/exercises/adaptive?subject=${currentSubject}`);
+    if (!res.ok) {
+      throw new Error(`Erreur serveur (${res.status})`);
+    }
     const data = await res.json();
-    currentExercises = data.exercises;
+    currentExercises = data.exercises || [];
     currentExerciseIndex = 0;
     exerciseScore = 0;
 
@@ -859,6 +863,12 @@ async function loadExercises() {
     showExercise();
   } catch (e) {
     console.error('Erreur exercices:', e);
+    document.getElementById('exercise-card').innerHTML = `
+      <p>Impossible de charger les exercices.</p>
+      <p style="font-size:0.85rem;color:var(--text-muted);">${e.message}</p>
+      <button class="btn-primary" onclick="loadExercises()">Réessayer</button>
+      <button class="btn-secondary" onclick="showSection('home')" style="margin-top:0.5rem;">Retour</button>
+    `;
   }
 }
 
@@ -2944,7 +2954,7 @@ function addTTSButton(subject) {
     if (ttsPlaying) {
       pauseTTS();
       playBtn.innerHTML = '▶️ Reprendre';
-    } else if (ttsChunks.length > 0 && ttsCurrentChunk < ttsChunks.length) {
+    } else if (ttsSegments.length > 0 && ttsCurrentSegment < ttsSegments.length) {
       resumeTTS();
       playBtn.innerHTML = '⏸️ Pause';
     } else {

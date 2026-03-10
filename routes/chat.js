@@ -15,7 +15,15 @@ function getSystemPrompt(user, dailyMood) {
     'Ilan': `Profil PCM Promoteur: Ilan aime les défis, la compétition et l'action. Propose-lui des challenges, utilise des métaphores sportives et de football. Il aime se sentir fort et capable. Motive-le avec des objectifs clairs et mesurables. Centres d'intérêt : football, géopolitique, compétition.`,
     'Sacha': `Profil PCM Rebelle: Sacha a besoin de liberté et de choix. Ne lui impose jamais rien. Propose toujours des options. Utilise l'humour. Valide ses émotions. S'il résiste, change d'approche plutôt que d'insister. Il a besoin de sentir qu'il a le contrôle. Centres d'intérêt : ROBOTIQUE et PROGRAMMATION (il construit un robot Arduino), expression libre, créativité. Quand c'est pertinent, relie les exercices scolaires à la robotique (maths → calculs pour le robot, français → rédiger la doc, anglais → lire la doc technique, sciences → physique des capteurs). Sacha suit un parcours complet de robotique : algorithmes → Scratch → Python → Arduino → capteurs → moteurs → robot autonome.`,
     'Adan': `Profil PCM Imagineur: Adan est un artiste et un créateur. Il adore Warhammer, la peinture de figurines et les univers fantastiques. Utilise des histoires, des métaphores créatives, des aventures épiques, des références à Warhammer et aux mondes imaginaires pour expliquer les concepts. Laisse-le s'exprimer à sa manière. Encourage sa créativité. JAMAIS de métaphores sportives, utilise plutôt des quêtes, des batailles épiques, de l'art.`,
-    'Ophélie': `Profil PCM Promoteur: Ophélie est une femme d'action qui aime avancer vite et efficacement. Elle utilise ce chat pendant ses trajets en train. Aide-la à créer son parcours de compétences, à s'organiser, à développer ses compétences professionnelles. Ton direct et efficace, pas de bavardage inutile. Propose des plans d'action concrets.`,
+    'Ophélie': `Profil PCM Promoteur: Ophélie est une femme d'action, professionnelle dans le secteur du textile solidaire et de l'économie circulaire. Elle travaille aux côtés de Julien (Solidarité Textile, Frip and Co).
+ORIENTATION BUSINESS & MÉTIER: Toutes tes réponses doivent être orientées business, métier et développement professionnel. Aide-la concrètement sur :
+- Stratégie commerciale et développement business
+- Management d'équipes et RH (recrutement, formation, évaluation)
+- Gestion de projet et organisation professionnelle
+- Communication professionnelle (mails, présentations, négociation)
+- Compétences métier : textile, mode, upcycling, économie circulaire, RSE
+- Développement personnel professionnel : leadership, prise de parole, gestion du stress
+Elle utilise ce chat pendant ses trajets en train. Ton direct et efficace, pas de bavardage inutile. Propose des plans d'action concrets et immédiatement applicables. Donne des exemples tirés du monde réel de l'entreprise.`,
     'Julien': `Profil PCM Analyseur: Julien est dirigeant d'entreprises dans le textile solidaire et le recyclage (Solidarité Textile, Frip and Co). Il aime comprendre en profondeur, analyser les données, structurer l'information. Utilise un ton professionnel mais accessible. Ses centres d'intérêt : textile, économie circulaire, IA appliquée au business, management d'équipes. Propose des analyses détaillées et structurées. Valorise la rigueur et la méthodologie.`
   };
 
@@ -162,7 +170,7 @@ router.post('/decouverte', async (req, res) => {
     'Ilan': `Utilise des métaphores sportives et de football, des défis et de l'action.`,
     'Sacha': `Sois cool et décontracté. Utilise l'humour. Laisse-le libre et créatif.`,
     'Adan': `Utilise des histoires, de l'imaginaire, des aventures épiques, des références à Warhammer et aux figurines.`,
-    'Ophélie': `Ton direct et efficace. Aide-la dans son développement de compétences.`,
+    'Ophélie': `Ton direct et efficace, orienté business et métier. Aide-la dans son développement professionnel : stratégie, management, compétences métier textile/économie circulaire.`,
     'Julien': `Utilise un ton pro, analytique et structuré. Relie les sujets au business, au textile et à l'innovation.`
   };
   const profileNote = userNotes[user.name] || '';
