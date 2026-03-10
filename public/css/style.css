@@ -2477,3 +2477,275 @@ body {
 .hidden {
   display: none !important;
 }
+
+/* ============================================
+   NOUVELLES MATIÈRES - TECHNO & SCIENCES
+   ============================================ */
+.subject-card.subject-techno {
+  background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+  color: white;
+}
+.subject-card.subject-techno .subject-name { color: white; }
+
+.subject-card.subject-sciences {
+  background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%);
+  color: white;
+}
+.subject-card.subject-sciences .subject-name { color: white; }
+
+/* ============================================
+   PROGRAMME DU JOUR
+   ============================================ */
+.daily-program-card {
+  margin-bottom: 1.5rem;
+}
+
+.daily-program-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.program-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--card-bg);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.program-block:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.program-block-done {
+  opacity: 0.6;
+  cursor: default;
+}
+.program-block-done:hover { transform: none; }
+
+.program-block-current {
+  border-left: 4px solid var(--primary);
+  background: linear-gradient(135deg, var(--card-bg) 0%, rgba(108, 92, 231, 0.05) 100%);
+}
+
+.program-block-upcoming {
+  opacity: 0.7;
+  cursor: default;
+}
+.program-block-upcoming:hover { transform: none; }
+
+.program-block-icon {
+  font-size: 1.5rem;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.program-block-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.program-block-info strong {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.program-block-info span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.program-block-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+/* ============================================
+   TTS - BOUTON LECTURE VOCALE
+   ============================================ */
+.btn-tts {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  background: var(--primary-light);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-tts:hover {
+  background: var(--primary);
+}
+
+.btn-speak {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.btn-speak:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.btn-video {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 0 1rem;
+  background: #E74C3C;
+  color: white;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.btn-video:hover {
+  background: #C0392B;
+}
+
+/* ============================================
+   ASTUCES ADULTES (MOT DU JOUR, ACTU DU JOUR)
+   ============================================ */
+.adult-daily-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tip-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.tip-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tip-header .tip-icon {
+  font-size: 1.3rem;
+}
+
+.tip-header strong {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tip-category {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.tip-word-text {
+  font-size: 1.5rem;
+  color: var(--primary);
+  margin: 0 0 0.25rem;
+}
+
+.tip-pronunciation {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.tip-card p {
+  font-size: 0.9rem;
+  color: var(--text);
+  margin: 0.4rem 0;
+  line-height: 1.5;
+}
+
+.tip-example {
+  color: var(--primary) !important;
+  font-style: italic;
+}
+
+.tip-example-fr {
+  color: var(--text-light) !important;
+  font-size: 0.85rem !important;
+}
+
+.tip-advice {
+  background: #FFF9E6;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  margin-top: 0.5rem !important;
+}
+
+.tip-relevance {
+  background: #F0F7FF;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+}
+
+.tip-action {
+  background: #F0FFF4;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+}
+
+.tip-news h4 {
+  margin: 0 0 0.5rem;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+/* ============================================
+   COURSE SHOPPING LIST (robotique)
+   ============================================ */
+.shopping-list {
+  background: linear-gradient(135deg, #FFF3E0, #FFF8E1);
+  border: 2px dashed #FF9800;
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.shopping-list a {
+  color: #E65100;
+  font-weight: 700;
+}
+
+.course-video {
+  margin-bottom: 0.5rem;
+}

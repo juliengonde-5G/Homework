@@ -184,6 +184,7 @@ function setupParentChatScreen() {
   `;
 
   loadChatHistory();
+  setTimeout(() => loadAdultTips(), 500);
 }
 
 function setupJulienScreen() {
@@ -238,6 +239,8 @@ function setupJulienScreen() {
 
   // Charger les parcours
   loadJulienParcours();
+  // Charger le mot du jour et l'actu du jour
+  setTimeout(() => loadAdultTips(), 500);
 }
 
 async function loadJulienParcours() {
@@ -364,6 +367,9 @@ async function login(userId) {
     showFloatingTimer();
     startWarmthQuestions();
 
+    // Charger le programme du jour
+    loadDailyProgram();
+
     // Vérifier si le questionnaire du jour a déjà été rempli
     const moodRes = await fetch('/api/daily-mood');
     const moodData = await moodRes.json();
@@ -457,6 +463,7 @@ async function logout() {
     <button class="chat-subject-btn" data-subject="francais" onclick="setChatSubject(this, 'francais')">📝 Français</button>
     <button class="chat-subject-btn" data-subject="anglais" onclick="setChatSubject(this, 'anglais')">🇬🇧 Anglais</button>
     <button class="chat-subject-btn" data-subject="maths" onclick="setChatSubject(this, 'maths')">🔢 Maths</button>
+    <button class="chat-subject-btn" data-subject="techno" onclick="setChatSubject(this, 'techno')">🤖 Robot</button>
   `;
   document.getElementById('chat-messages').innerHTML = `
     <div class="chat-bubble assistant">
@@ -736,8 +743,8 @@ let learnStep = 'list'; // 'list', 'lesson', 'exercises', 'complete'
 
 function selectSubject(subject) {
   currentSubject = subject;
-  const names = { francais: 'Français', anglais: 'Anglais', maths: 'Mathématiques' };
-  document.getElementById('learn-title').textContent = names[subject];
+  const names = { francais: 'Français', anglais: 'Anglais', maths: 'Mathématiques', techno: 'Techno & Robotique', sciences: 'Sciences' };
+  document.getElementById('learn-title').textContent = names[subject] || subject;
   learnStep = 'list';
   loadLearnCourses(subject);
   showSection('learn');
@@ -749,8 +756,8 @@ function learnGoBack() {
     learnStep = 'list';
     document.getElementById('learn-course-detail').classList.add('hidden');
     document.getElementById('learn-courses-list').classList.remove('hidden');
-    const names = { francais: 'Français', anglais: 'Anglais', maths: 'Mathématiques' };
-    document.getElementById('learn-title').textContent = names[currentSubject];
+    const names = { francais: 'Français', anglais: 'Anglais', maths: 'Mathématiques', techno: 'Techno & Robotique', sciences: 'Sciences' };
+    document.getElementById('learn-title').textContent = names[currentSubject] || currentSubject;
   } else if (learnStep === 'exercises') {
     // On ne revient pas en arrière pendant les exercices, on va à l'accueil
     showSection('home');
@@ -811,8 +818,11 @@ async function learnShowCourse(courseId) {
     document.getElementById('learn-course-detail').classList.remove('hidden');
     document.getElementById('learn-course-content').innerHTML = `
       <h2>${course.title}</h2>
+      ${course.video_url ? `<div class="course-video"><a href="${course.video_url}" target="_blank" class="btn-video">🎥 Voir la vidéo du cours</a></div>` : ''}
       <div class="course-body">${course.content}</div>
     `;
+    // Ajouter le bouton TTS
+    setTimeout(() => addTTSButton(currentSubject), 100);
   } catch (e) {
     console.error('Erreur cours détail:', e);
   }
@@ -1349,12 +1359,12 @@ function setupPassionOptions() {
       { label: '🎵 Musique', value: 'musique' }
     ],
     creative: [
-      { label: '🎭 Théâtre', value: 'théâtre' },
+      { label: '🤖 Robotique', value: 'robotique' },
+      { label: '💻 Programmation', value: 'programmation' },
+      { label: '🎮 Jeux vidéo', value: 'jeux vidéo' },
       { label: '🎵 Musique', value: 'musique' },
       { label: '🎨 Dessin', value: 'dessin' },
-      { label: '📺 Vidéos/YouTube', value: 'vidéos' },
-      { label: '🎮 Jeux', value: 'jeux' },
-      { label: '📖 Histoires', value: 'histoires' }
+      { label: '📺 Vidéos/YouTube', value: 'vidéos' }
     ],
     warhammer: [
       { label: '⚔️ Warhammer', value: 'warhammer' },
@@ -2448,4 +2458,229 @@ function closeAudioPlayer() {
   stopSpeech();
   document.getElementById('audio-player-modal').classList.add('hidden');
   currentAudioLesson = null;
+}
+
+// ==================
+// PROGRAMME DU JOUR (adaptatif)
+// ==================
+async function loadDailyProgram() {
+  try {
+    const res = await fetch('/api/program/today');
+    const data = await res.json();
+    if (!data.program) return;
+
+    const card = document.getElementById('daily-program-card');
+    const blocksDiv = document.getElementById('daily-program-blocks');
+    if (!card || !blocksDiv) return;
+
+    const blocks = data.program.blocks;
+    const currentBlock = data.program.current_block;
+
+    blocksDiv.innerHTML = blocks.map((b, i) => {
+      const status = i < currentBlock ? 'done' : i === currentBlock ? 'current' : 'upcoming';
+      const statusIcon = status === 'done' ? '✅' : status === 'current' ? '▶️' : '⬜';
+      return `
+        <div class="program-block program-block-${status}" onclick="${status === 'current' ? `startProgramBlock(${i}, '${b.type}', '${b.subject}')` : ''}">
+          <span class="program-block-icon">${b.icon || '📚'}</span>
+          <div class="program-block-info">
+            <strong>${b.title}</strong>
+            <span>${b.description}</span>
+          </div>
+          <div class="program-block-meta">
+            <span>${b.duration} min</span>
+            <span>${statusIcon}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    card.classList.remove('hidden');
+  } catch (e) {
+    console.error('Erreur chargement programme:', e);
+  }
+}
+
+function startProgramBlock(index, type, subject) {
+  if (type === 'lesson' || type === 'exercises') {
+    selectSubject(subject);
+  } else if (type === 'discovery') {
+    openDecouverte();
+  }
+  // Marquer l'avancement
+  fetch('/api/program/advance', { method: 'POST' }).catch(() => {});
+}
+
+// ==================
+// TEXT-TO-SPEECH (TTS) - Compatible smartphone
+// Voix anglophone pour l'anglais, francophone pour le reste
+// ==================
+let ttsUtterance = null;
+let ttsPlaying = false;
+
+function initTTS() {
+  // Forcer le chargement des voix (nécessaire sur certains navigateurs mobiles)
+  if ('speechSynthesis' in window) {
+    speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+  }
+}
+
+function getVoiceForLang(lang) {
+  const voices = speechSynthesis.getVoices();
+  if (lang === 'en') {
+    // Chercher une voix anglaise native (pas française)
+    const enVoice = voices.find(v => v.lang.startsWith('en') && !v.name.includes('French'))
+      || voices.find(v => v.lang.startsWith('en-GB'))
+      || voices.find(v => v.lang.startsWith('en-US'))
+      || voices.find(v => v.lang.startsWith('en'));
+    return enVoice || null;
+  }
+  // Français
+  const frVoice = voices.find(v => v.lang.startsWith('fr'))
+    || voices.find(v => v.lang === 'fr-FR');
+  return frVoice || null;
+}
+
+function speakText(text, lang) {
+  if (!('speechSynthesis' in window)) return;
+
+  stopTTS();
+
+  ttsUtterance = new SpeechSynthesisUtterance(text);
+  const voice = getVoiceForLang(lang || 'fr');
+  if (voice) ttsUtterance.voice = voice;
+  ttsUtterance.lang = lang === 'en' ? 'en-GB' : 'fr-FR';
+  ttsUtterance.rate = 0.9;
+  ttsUtterance.pitch = 1;
+
+  ttsUtterance.onstart = () => { ttsPlaying = true; };
+  ttsUtterance.onend = () => { ttsPlaying = false; };
+  ttsUtterance.onerror = () => { ttsPlaying = false; };
+
+  speechSynthesis.speak(ttsUtterance);
+}
+
+function stopTTS() {
+  if ('speechSynthesis' in window) {
+    speechSynthesis.cancel();
+  }
+  ttsPlaying = false;
+}
+
+function speakCourseContent(subject) {
+  const content = document.getElementById('learn-course-content');
+  if (!content) return;
+
+  const text = content.innerText || content.textContent;
+  const lang = subject === 'anglais' ? 'en' : 'fr';
+  speakText(text, lang);
+}
+
+function speakExerciseQuestion() {
+  if (!currentExercises || currentExerciseIndex >= currentExercises.length) return;
+  const exercise = currentExercises[currentExerciseIndex];
+  const lang = exercise.subject === 'anglais' ? 'en' : 'fr';
+  speakText(exercise.question, lang);
+}
+
+// Initialiser TTS au chargement
+document.addEventListener('DOMContentLoaded', initTTS);
+
+// ==================
+// ASTUCES ADULTES (mot du jour, actu du jour)
+// ==================
+async function loadAdultTips() {
+  if (!currentUser || currentUser.role !== 'parent') return;
+
+  try {
+    const [wordRes, newsRes] = await Promise.all([
+      fetch('/api/daily-tips/word'),
+      fetch('/api/daily-tips/news')
+    ]);
+
+    const word = await wordRes.json();
+    const news = await newsRes.json();
+
+    // Créer ou mettre à jour le conteneur de tips
+    let tipsContainer = document.getElementById('adult-daily-tips');
+    if (!tipsContainer) {
+      tipsContainer = document.createElement('div');
+      tipsContainer.id = 'adult-daily-tips';
+      tipsContainer.className = 'adult-daily-tips';
+
+      // Insérer après le header dans la section appropriée
+      const contentArea = document.getElementById('julien-learning-content')
+        || document.getElementById('chat-messages');
+      if (contentArea && contentArea.parentNode) {
+        contentArea.parentNode.insertBefore(tipsContainer, contentArea);
+      }
+    }
+
+    let wordHtml = '';
+    if (word.word) {
+      const hasEnDef = word.definition_en;
+      wordHtml = `
+        <div class="tip-card tip-word">
+          <div class="tip-header">
+            <span class="tip-icon">📖</span>
+            <strong>Mot du jour</strong>
+            <button class="btn-speak" onclick="speakText('${word.word}. ${(word.example_en || '').replace(/'/g, "\\'")}', 'en')" title="Écouter">🔊</button>
+          </div>
+          <h4 class="tip-word-text">${word.word}</h4>
+          ${word.pronunciation ? `<span class="tip-pronunciation">${word.pronunciation}</span>` : ''}
+          <p>${hasEnDef ? word.definition_fr : word.definition || ''}</p>
+          ${word.example_en ? `<p class="tip-example"><em>"${word.example_en}"</em></p>` : ''}
+          ${word.example_fr ? `<p class="tip-example-fr">${word.example_fr}</p>` : ''}
+          ${word.tip ? `<p class="tip-advice">💡 ${word.tip}</p>` : ''}
+        </div>
+      `;
+    }
+
+    let newsHtml = '';
+    if (news.title) {
+      const catColors = { 'réglementation': '#3498DB', 'innovation': '#2ECC71', 'marché': '#E67E22', 'RSE': '#9B59B6', 'subvention': '#E74C3C' };
+      newsHtml = `
+        <div class="tip-card tip-news">
+          <div class="tip-header">
+            <span class="tip-icon">📰</span>
+            <strong>Actu du jour</strong>
+            ${news.category ? `<span class="tip-category" style="background:${catColors[news.category] || '#95a5a6'}">${news.category}</span>` : ''}
+          </div>
+          <h4>${news.title}</h4>
+          <p>${news.summary}</p>
+          ${news.relevance ? `<p class="tip-relevance"><strong>Pour nous :</strong> ${news.relevance}</p>` : ''}
+          ${news.action ? `<p class="tip-action">➡️ <strong>Action :</strong> ${news.action}</p>` : ''}
+        </div>
+      `;
+    }
+
+    tipsContainer.innerHTML = wordHtml + newsHtml;
+  } catch (e) {
+    console.error('Erreur chargement tips adultes:', e);
+  }
+}
+
+// Ajouter un bouton lecture vocale dans les cours
+function addTTSButton(subject) {
+  const header = document.querySelector('#learn-course-detail .course-body');
+  if (!header) return;
+
+  // Ne pas ajouter si déjà présent
+  if (document.getElementById('tts-course-btn')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'tts-course-btn';
+  btn.className = 'btn-tts';
+  btn.innerHTML = '🔊 Écouter le cours';
+  btn.onclick = () => {
+    if (ttsPlaying) {
+      stopTTS();
+      btn.innerHTML = '🔊 Écouter le cours';
+    } else {
+      speakCourseContent(subject);
+      btn.innerHTML = '⏹️ Arrêter la lecture';
+    }
+  };
+
+  header.parentNode.insertBefore(btn, header);
 }

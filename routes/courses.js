@@ -62,7 +62,9 @@ router.get('/subjects/list', (req, res) => {
   const subjects = [
     { id: 'francais', name: 'Français', icon: '📝', color: '#4A90D9' },
     { id: 'anglais', name: 'Anglais', icon: '🇬🇧', color: '#E74C3C' },
-    { id: 'maths', name: 'Mathématiques', icon: '🔢', color: '#2ECC71' }
+    { id: 'maths', name: 'Mathématiques', icon: '🔢', color: '#2ECC71' },
+    { id: 'techno', name: 'Techno & Robotique', icon: '🤖', color: '#FF6B35' },
+    { id: 'sciences', name: 'Sciences', icon: '🔬', color: '#9B59B6' }
   ];
   res.json(subjects);
 });

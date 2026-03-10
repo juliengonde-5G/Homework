@@ -246,6 +246,20 @@ function initDatabase() {
     )
   `);
 
+  // Migration: table daily_tips (mot du jour, actu du jour pour adultes)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS daily_tips (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      type TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, date, type)
+    )
+  `);
+
   // Seed users si vide (enfants + parents)
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
   if (userCount.count === 0) {
@@ -256,8 +270,8 @@ function initDatabase() {
 
     insertUserFull.run('Ilan', '⚽', 14, '4ème', 'promoteur', 'football', 0,
       JSON.stringify(['football', 'géopolitique', 'compétition']), 45, null, 'child');
-    insertUserFull.run('Sacha', '🎭', 11, '6ème', 'rebelle', 'creative', 1,
-      JSON.stringify(['liberté', 'choix', 'expression']), 45, null, 'child');
+    insertUserFull.run('Sacha', '🤖', 11, '6ème', 'rebelle', 'creative', 1,
+      JSON.stringify(['robotique', 'programmation', 'liberté', 'choix', 'expression']), 45, null, 'child');
     insertUserFull.run('Adan', '🎨', 11, '6ème', 'imagineur', 'warhammer', 1,
       JSON.stringify(['warhammer', 'art', 'imagination', 'création']), 45, null, 'child');
     insertUserFull.run('Ophélie', '👩', 40, 'Pro', 'promoteur', 'ophelie', 0,
@@ -270,7 +284,7 @@ function initDatabase() {
       INSERT INTO user_stats (user_id, subject) VALUES (?, ?)
     `);
     for (let userId = 1; userId <= 3; userId++) {
-      for (const subject of ['francais', 'anglais', 'maths']) {
+      for (const subject of ['francais', 'anglais', 'maths', 'techno', 'sciences']) {
         insertStats.run(userId, subject);
       }
     }

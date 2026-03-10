@@ -96,6 +96,12 @@
             </div>
           </div>
 
+          <!-- Programme du jour (généré automatiquement) -->
+          <div id="daily-program-card" class="daily-program-card hidden">
+            <h3 class="section-title">Mon programme du jour</h3>
+            <div id="daily-program-blocks" class="daily-program-blocks"></div>
+          </div>
+
           <h3 class="section-title">Choisis ta matière</h3>
           <div class="subjects-grid">
             <button class="subject-card subject-francais" onclick="selectSubject('francais')">
@@ -112,6 +118,16 @@
               <span class="subject-icon">🔢</span>
               <span class="subject-name">Maths</span>
               <div id="progress-maths" class="progress-mini"></div>
+            </button>
+            <button class="subject-card subject-techno" onclick="selectSubject('techno')">
+              <span class="subject-icon">🤖</span>
+              <span class="subject-name">Techno & Robot</span>
+              <div id="progress-techno" class="progress-mini"></div>
+            </button>
+            <button class="subject-card subject-sciences" onclick="selectSubject('sciences')">
+              <span class="subject-icon">🔬</span>
+              <span class="subject-name">Sciences</span>
+              <div id="progress-sciences" class="progress-mini"></div>
             </button>
             <button class="subject-card subject-decouverte" onclick="openDecouverte()">
               <span class="subject-icon">🔭</span>
@@ -196,6 +212,7 @@
             <button class="chat-subject-btn" data-subject="francais" onclick="setChatSubject(this, 'francais')">📝 Français</button>
             <button class="chat-subject-btn" data-subject="anglais" onclick="setChatSubject(this, 'anglais')">🇬🇧 Anglais</button>
             <button class="chat-subject-btn" data-subject="maths" onclick="setChatSubject(this, 'maths')">🔢 Maths</button>
+            <button class="chat-subject-btn" data-subject="techno" onclick="setChatSubject(this, 'techno')">🤖 Robot</button>
           </div>
           <div id="chat-messages" class="chat-messages">
             <div class="chat-bubble assistant">
