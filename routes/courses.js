@@ -1,6 +1,18 @@
 const express = require('express');
 const router = express.Router();
 
+// GET /api/courses/subjects/list - AVANT /:id pour éviter l'interception
+router.get('/subjects/list', (req, res) => {
+  const subjects = [
+    { id: 'francais', name: 'Français', icon: '📝', color: '#4A90D9' },
+    { id: 'anglais', name: 'Anglais', icon: '🇬🇧', color: '#E74C3C' },
+    { id: 'maths', name: 'Mathématiques', icon: '🔢', color: '#2ECC71' },
+    { id: 'techno', name: 'Techno & Robotique', icon: '🤖', color: '#FF6B35' },
+    { id: 'sciences', name: 'Sciences', icon: '🔬', color: '#9B59B6' }
+  ];
+  res.json(subjects);
+});
+
 // GET /api/courses - Liste des cours par matière et niveau
 router.get('/', (req, res) => {
   const db = req.app.locals.db;
@@ -55,18 +67,6 @@ router.get('/:id', (req, res) => {
   }
 
   res.json(course);
-});
-
-// GET /api/courses/subjects/list - Liste des matières disponibles
-router.get('/subjects/list', (req, res) => {
-  const subjects = [
-    { id: 'francais', name: 'Français', icon: '📝', color: '#4A90D9' },
-    { id: 'anglais', name: 'Anglais', icon: '🇬🇧', color: '#E74C3C' },
-    { id: 'maths', name: 'Mathématiques', icon: '🔢', color: '#2ECC71' },
-    { id: 'techno', name: 'Techno & Robotique', icon: '🤖', color: '#FF6B35' },
-    { id: 'sciences', name: 'Sciences', icon: '🔬', color: '#9B59B6' }
-  ];
-  res.json(subjects);
 });
 
 module.exports = router;
