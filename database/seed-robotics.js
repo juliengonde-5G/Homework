@@ -1,12 +1,12 @@
 /**
  * Parcours Robotique & Programmation pour Sacha
- * Programme complet : de zéro à robot autonome
+ * Configuration : SunFounder PiCar-X + Raspberry Pi 4
+ * Programme complet : de zéro à robot IA autonome
  * Lié au programme Éducation Nationale (Technologie 6ème/5ème)
  * Adapté au profil PCM Rebelle + dyslexie
  */
 
 function seedRobotics(db) {
-  // Vérifier si le contenu robotique existe déjà
   const existing = db.prepare("SELECT COUNT(*) as count FROM courses WHERE subject = 'techno'").get();
   if (existing.count > 0) return;
 
@@ -28,7 +28,7 @@ function seedRobotics(db) {
 
   // --- Module 1 : C'est quoi un algorithme ? ---
   courseId = insertCourse.run('techno',
-    'C\'est quoi un algorithme ?',
+    "C'est quoi un algorithme ?",
     `<h3>Un algorithme, c'est une recette !</h3>
     <p>Imagine que tu veux faire un sandwich. Tu suis des étapes :</p>
     <ol>
@@ -60,272 +60,194 @@ function seedRobotics(db) {
 
     <div class="tip">
       💡 <strong>Le savais-tu ?</strong> Le mot "algorithme" vient d'un mathématicien perse du 9ème siècle : Al-Khwarizmi !
-    </div>
-
-    <div class="shopping-list">
-      🛒 <strong>Pas besoin de matériel pour ce module !</strong> Juste ton cerveau et un papier.
     </div>`,
     '6ème', 1, 1,
     JSON.stringify(['algorithme', 'bases', 'logique', 'phase1']),
-    null,
-    'https://www.youtube.com/watch?v=6hfOvs8pY1k',
-    10
+    null, 'https://www.youtube.com/watch?v=6hfOvs8pY1k', 10
   ).lastInsertRowid;
 
-  insertExercise.run(courseId, 'techno', 'C\'est quoi un algorithme ?', 'qcm',
-    'Un algorithme, c\'est quoi ?',
-    JSON.stringify(['Un robot', 'Une suite d\'instructions dans un ordre précis', 'Un ordinateur', 'Un jeu vidéo']),
-    'Une suite d\'instructions dans un ordre précis',
-    'Un algorithme = une recette, une série d\'étapes à suivre dans l\'ordre !',
+  insertExercise.run(courseId, 'techno', "C'est quoi un algorithme ?", 'qcm',
+    "Un algorithme, c'est quoi ?",
+    JSON.stringify(["Un robot", "Une suite d'instructions dans un ordre précis", "Un ordinateur", "Un jeu vidéo"]),
+    "Une suite d'instructions dans un ordre précis",
+    "Un algorithme = une recette, une série d'étapes à suivre dans l'ordre !",
     '6ème', 1, 10, JSON.stringify(['algorithme']), null);
 
   insertExercise.run(courseId, 'techno', 'Les 3 briques', 'qcm',
-    'Quelles sont les 3 briques de base d\'un algorithme ?',
+    "Quelles sont les 3 briques de base d'un algorithme ?",
     JSON.stringify(['Séquence, condition, boucle', 'Début, milieu, fin', 'Lire, écrire, compter', 'Input, output, process']),
     'Séquence, condition, boucle',
-    'Séquence (l\'ordre), Condition (si/alors), Boucle (répéter). C\'est tout ce qu\'il faut !',
+    "Séquence (l'ordre), Condition (si/alors), Boucle (répéter). C'est tout ce qu'il faut !",
     '6ème', 1, 10, JSON.stringify(['algorithme']), null);
 
-  insertExercise.run(courseId, 'techno', 'Trouver l\'erreur', 'qcm',
-    'Algorithme pour faire du thé : 1. Mettre l\'eau à chauffer 2. Boire le thé 3. Mettre le sachet dans la tasse 4. Verser l\'eau. Quel est le problème ?',
-    JSON.stringify(['Il manque du sucre', 'Les étapes sont dans le désordre', 'Il faut du café', 'C\'est parfait']),
-    'Les étapes sont dans le désordre',
-    'On ne peut pas boire le thé avant de l\'avoir préparé ! L\'ordre compte dans un algorithme.',
+  insertExercise.run(courseId, 'techno', "Trouver l'erreur", 'qcm',
+    "Algorithme pour faire du thé : 1. Mettre l'eau à chauffer 2. Boire le thé 3. Mettre le sachet 4. Verser l'eau. Problème ?",
+    JSON.stringify(["Il manque du sucre", "Les étapes sont dans le désordre", "Il faut du café", "C'est parfait"]),
+    "Les étapes sont dans le désordre",
+    "On ne peut pas boire le thé avant de l'avoir préparé ! L'ordre compte dans un algorithme.",
     '6ème', 1, 10, JSON.stringify(['algorithme']), null);
-
-  insertExercise.run(courseId, 'techno', 'Condition dans l\'algo', 'qcm',
-    'Dans l\'algorithme "Si il pleut → prendre un parapluie, sinon → mettre des lunettes de soleil", que fait-on quand il fait beau ?',
-    JSON.stringify(['Prendre un parapluie', 'Mettre des lunettes de soleil', 'Rester à la maison', 'Rien du tout']),
-    'Mettre des lunettes de soleil',
-    'Quand la condition "il pleut" est fausse, on exécute le "sinon" : lunettes de soleil !',
-    '6ème', 1, 10, JSON.stringify(['algorithme', 'condition']), null);
 
   // --- Module 2 : Scratch - Programmer sans écrire de code ---
   courseId = insertCourse.run('techno',
     'Scratch - Programmer sans écrire',
     `<h3>Scratch, c'est quoi ?</h3>
-    <p><strong>Scratch</strong> est un logiciel gratuit créé par le MIT (une des meilleures universités du monde). Tu programmes en assemblant des blocs colorés, comme des LEGO !</p>
+    <p><strong>Scratch</strong> est un logiciel gratuit créé par le MIT. Tu programmes en assemblant des blocs colorés, comme des LEGO !</p>
 
-    <h3>Comment ça marche ?</h3>
+    <h3>Les blocs par couleur</h3>
     <ul>
-      <li><strong>Les blocs bleus</strong> : mouvement (avancer, tourner)</li>
-      <li><strong>Les blocs violets</strong> : apparence (dire, changer de costume)</li>
-      <li><strong>Les blocs jaunes</strong> : événements (quand on clique...)</li>
-      <li><strong>Les blocs oranges</strong> : contrôle (si, répéter)</li>
+      <li><strong>Blocs bleus</strong> : mouvement (avancer, tourner)</li>
+      <li><strong>Blocs violets</strong> : apparence (dire, changer de costume)</li>
+      <li><strong>Blocs jaunes</strong> : événements (quand on clique...)</li>
+      <li><strong>Blocs oranges</strong> : contrôle (si, répéter)</li>
     </ul>
 
     <h3>Ton premier programme</h3>
     <div class="example">
-      <strong>Fais bouger le chat :</strong><br>
       1. Va sur <strong>scratch.mit.edu</strong><br>
       2. Clique "Créer"<br>
-      3. Glisse le bloc "avancer de 10 pas"<br>
+      3. Glisse "avancer de 10 pas"<br>
       4. Ajoute "tourner de 15 degrés"<br>
       5. Mets une boucle "répéter 24 fois"<br>
-      6. Clique sur le drapeau vert → Le chat fait un cercle !
+      6. Drapeau vert → Le chat fait un cercle !
     </div>
 
     <h3>Pourquoi Scratch avant Python ?</h3>
     <p>Scratch permet de comprendre la logique sans se battre avec l'écriture du code. Une fois que tu maîtrises les blocs, Python sera facile !</p>
 
     <div class="tip">
-      💡 <strong>Défi :</strong> Crée un mini-jeu sur Scratch ! Un personnage qui se déplace avec les flèches et attrape des objets.
-    </div>
-
-    <div class="shopping-list">
-      🛒 <strong>Matériel :</strong> Un ordinateur ou tablette avec accès internet → <a href="https://scratch.mit.edu" target="_blank">scratch.mit.edu</a> (gratuit !)
+      💡 <strong>Défi :</strong> Crée un mini-jeu : un personnage qui bouge avec les flèches et attrape des objets.
     </div>`,
     '6ème', 1, 2,
     JSON.stringify(['scratch', 'programmation visuelle', 'bases', 'phase1']),
-    null,
-    'https://www.youtube.com/watch?v=VIpmkeqJhmQ',
-    15
+    null, 'https://www.youtube.com/watch?v=VIpmkeqJhmQ', 15
   ).lastInsertRowid;
 
-  insertExercise.run(courseId, 'techno', 'Scratch c\'est quoi ?', 'qcm',
-    'Scratch est un logiciel de programmation qui utilise...',
-    JSON.stringify(['Du texte à taper', 'Des blocs colorés à assembler', 'Des formules mathématiques', 'Des dessins à tracer']),
+  insertExercise.run(courseId, 'techno', "Scratch c'est quoi ?", 'qcm',
+    'Scratch utilise...',
+    JSON.stringify(['Du texte à taper', 'Des blocs colorés à assembler', 'Des formules mathématiques', 'Des dessins']),
     'Des blocs colorés à assembler',
-    'Scratch utilise des blocs colorés qu\'on assemble comme des LEGO pour créer des programmes !',
-    '6ème', 1, 10, JSON.stringify(['scratch']), null);
-
-  insertExercise.run(courseId, 'techno', 'Les blocs de mouvement', 'qcm',
-    'De quelle couleur sont les blocs de mouvement dans Scratch ?',
-    JSON.stringify(['Jaune', 'Orange', 'Bleu', 'Violet']),
-    'Bleu',
-    'Les blocs bleus servent au mouvement : avancer, tourner, aller à une position.',
+    "Des blocs colorés qu'on assemble comme des LEGO !",
     '6ème', 1, 10, JSON.stringify(['scratch']), null);
 
   insertExercise.run(courseId, 'techno', 'Faire un cercle', 'qcm',
-    'Pour faire un cercle avec le chat Scratch, il faut combiner "avancer" et...',
+    'Pour un cercle dans Scratch, il faut "avancer" + ...',
     JSON.stringify(['"dire bonjour"', '"tourner de quelques degrés"', '"changer de costume"', '"jouer un son"']),
     '"tourner de quelques degrés"',
-    'Avancer + tourner un peu, le tout dans une boucle = un cercle !',
+    'Avancer + tourner un peu, dans une boucle = un cercle !',
     '6ème', 1, 10, JSON.stringify(['scratch']), null);
 
   // --- Module 3 : Variables et conditions ---
   courseId = insertCourse.run('techno',
     'Variables et conditions - Si... alors...',
     `<h3>C'est quoi une variable ?</h3>
-    <p>Une variable, c'est une <strong>boîte avec une étiquette</strong> dans laquelle tu ranges une information.</p>
+    <p>Une variable = une <strong>boîte avec une étiquette</strong> qui contient une information.</p>
 
     <div class="example">
-      <strong>Exemples :</strong><br>
-      📦 age = 11 → la boîte "age" contient le nombre 11<br>
-      📦 prenom = "Sacha" → la boîte "prenom" contient le texte "Sacha"<br>
-      📦 score = 0 → la boîte "score" contient 0 (pour l'instant !)
+      📦 age = 11<br>
+      📦 prenom = "Sacha"<br>
+      📦 score = 0
     </div>
 
     <h3>Les conditions : Si... Alors... Sinon</h3>
-    <p>Les conditions permettent au programme de <strong>prendre des décisions</strong>.</p>
-
     <div class="example">
-      <strong>En français :</strong><br>
-      Si score >= 10 alors afficher "Bravo !"<br>
-      Sinon afficher "Continue, tu vas y arriver !"<br><br>
       <strong>En Python :</strong><br>
       <code>if score >= 10:<br>&nbsp;&nbsp;print("Bravo !")<br>else:<br>&nbsp;&nbsp;print("Continue !")</code>
     </div>
 
     <h3>Les comparaisons</h3>
     <ul>
-      <li><strong>==</strong> : est égal à</li>
-      <li><strong>!=</strong> : est différent de</li>
-      <li><strong>></strong> : est plus grand que</li>
-      <li><strong><</strong> : est plus petit que</li>
-      <li><strong>>=</strong> : est plus grand ou égal</li>
+      <li><strong>==</strong> : égal à</li>
+      <li><strong>!=</strong> : différent de</li>
+      <li><strong>&gt;</strong> : plus grand que</li>
+      <li><strong>&lt;</strong> : plus petit que</li>
     </ul>
 
     <h3>Lien avec la robotique</h3>
-    <p>Un robot utilise des conditions tout le temps :</p>
     <div class="example">
-      Si obstacle_devant == vrai alors tourner_a_droite()<br>
-      Sinon avancer()
+      <code>if obstacle_devant == True:<br>&nbsp;&nbsp;tourner_a_droite()<br>else:<br>&nbsp;&nbsp;avancer()</code>
     </div>
 
-    <div class="tip">
-      💡 <strong>Dans Scratch :</strong> Le bloc orange "si... alors..." fait exactement la même chose !
-    </div>`,
+    <div class="tip">💡 Le PiCar-X utilise exactement ce genre de conditions pour naviguer !</div>`,
     '6ème', 1, 3,
     JSON.stringify(['variables', 'conditions', 'logique', 'phase1']),
-    null,
-    'https://www.youtube.com/watch?v=Eaz5e6M8tL4',
-    12
+    null, 'https://www.youtube.com/watch?v=Eaz5e6M8tL4', 12
   ).lastInsertRowid;
 
-  insertExercise.run(courseId, 'techno', 'C\'est quoi une variable ?', 'qcm',
+  insertExercise.run(courseId, 'techno', "C'est quoi une variable ?", 'qcm',
     'Une variable en programmation, c\'est...',
-    JSON.stringify(['Un nombre qui ne change jamais', 'Une boîte avec une étiquette qui contient une information', 'Un type de robot', 'Une erreur dans le code']),
-    'Une boîte avec une étiquette qui contient une information',
-    'Une variable = une boîte étiquetée. On peut y mettre un nombre, du texte, etc.',
+    JSON.stringify(["Un nombre fixe", "Une boîte étiquetée contenant une info", "Un type de robot", "Une erreur"]),
+    "Une boîte étiquetée contenant une info",
+    "Variable = boîte étiquetée. On peut y mettre un nombre, du texte, etc.",
     '6ème', 1, 10, JSON.stringify(['variables']), null);
 
   insertExercise.run(courseId, 'techno', 'Que vaut la variable ?', 'qcm',
-    'Si on écrit : score = 5, puis score = score + 3. Que vaut score ?',
+    'score = 5, puis score = score + 3. Que vaut score ?',
     JSON.stringify(['5', '3', '8', '53']),
-    '8',
-    'score commence à 5, puis on ajoute 3. 5 + 3 = 8 !',
+    '8', '5 + 3 = 8 !',
     '6ème', 1, 10, JSON.stringify(['variables']), null);
 
-  insertExercise.run(courseId, 'techno', 'Condition du robot', 'qcm',
-    'Si temperature > 30 alors ventilateur = "ON". Il fait 25°C. Que fait le ventilateur ?',
-    JSON.stringify(['Il s\'allume', 'Il reste éteint', 'Il explose', 'On ne sait pas']),
-    'Il reste éteint',
-    '25 n\'est PAS plus grand que 30, donc la condition est fausse. Le ventilateur reste éteint.',
-    '6ème', 1, 10, JSON.stringify(['conditions']), null);
-
   insertExercise.run(courseId, 'techno', 'Quel symbole ?', 'qcm',
-    'Pour vérifier si deux valeurs sont égales en Python, on utilise...',
+    'Pour vérifier si deux valeurs sont égales en Python ?',
     JSON.stringify(['=', '==', '!=', '>=']),
-    '==',
-    '= sert à donner une valeur (score = 5). == sert à comparer (score == 5 ?).',
+    '==', '= donne une valeur (score = 5). == compare (score == 5 ?).',
     '6ème', 1, 10, JSON.stringify(['conditions']), null);
 
   // --- Module 4 : Les boucles ---
   courseId = insertCourse.run('techno',
     'Les boucles - Répéter des actions',
-    `<h3>Pourquoi des boucles ?</h3>
-    <p>Imagine que tu veux écrire "Bonjour" 100 fois. Tu ne vas pas écrire 100 lignes ! Une boucle le fait pour toi.</p>
-
-    <h3>La boucle "for" (pour)</h3>
+    `<h3>La boucle "for"</h3>
     <div class="example">
-      <strong>En français :</strong><br>
-      Pour i allant de 1 à 10 : afficher i<br><br>
-      <strong>En Python :</strong><br>
-      <code>for i in range(10):<br>&nbsp;&nbsp;print(i)</code><br><br>
-      Résultat : 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+      <code>for i in range(10):<br>&nbsp;&nbsp;print(i)</code><br>
+      → Affiche 0, 1, 2, ... 9
     </div>
 
-    <h3>La boucle "while" (tant que)</h3>
+    <h3>La boucle "while"</h3>
     <div class="example">
-      <strong>En français :</strong><br>
-      Tant que le robot n'a pas trouvé le mur : avancer<br><br>
-      <strong>En Python :</strong><br>
-      <code>while not mur_detecte:<br>&nbsp;&nbsp;avancer()</code>
+      <code>while not obstacle_detecte:<br>&nbsp;&nbsp;avancer()</code>
     </div>
 
-    <h3>Boucle infinie = DANGER !</h3>
-    <p>Si tu oublies la condition d'arrêt, le programme tourne à l'infini. C'est comme un robot qui avance sans jamais s'arrêter... CRASH ! 💥</p>
-
-    <h3>En robotique</h3>
-    <p>Le programme principal d'un robot est UNE GRANDE BOUCLE :</p>
+    <h3>En robotique : la boucle principale</h3>
     <div class="example">
-      <code>while True:  # boucle infinie (volontaire !)<br>
+      <code>while True:<br>
       &nbsp;&nbsp;lire_capteurs()<br>
-      &nbsp;&nbsp;prendre_decision()<br>
-      &nbsp;&nbsp;bouger_moteurs()</code>
+      &nbsp;&nbsp;decider()<br>
+      &nbsp;&nbsp;bouger()</code>
     </div>
+    <p>C'est exactement comme ça que fonctionne le PiCar-X !</p>
 
-    <div class="tip">
-      💡 <strong>Astuce :</strong> Dans Scratch, c'est le bloc "répéter X fois" ou "répéter indéfiniment".
-    </div>`,
+    <div class="tip">💡 Boucle infinie sans condition d'arrêt = DANGER. Le robot ne s'arrête jamais !</div>`,
     '6ème', 1, 4,
     JSON.stringify(['boucles', 'programmation', 'phase1']),
-    null,
-    'https://www.youtube.com/watch?v=wxds6MAtUQ0',
-    12
+    null, 'https://www.youtube.com/watch?v=wxds6MAtUQ0', 12
   ).lastInsertRowid;
 
-  insertExercise.run(courseId, 'techno', 'Pourquoi une boucle ?', 'qcm',
-    'Pourquoi utilise-t-on des boucles en programmation ?',
-    JSON.stringify(['Pour rendre le code plus joli', 'Pour répéter des actions sans tout réécrire', 'Pour aller plus vite', 'Pour faire des erreurs']),
-    'Pour répéter des actions sans tout réécrire',
-    'Une boucle évite de copier-coller le même code 100 fois !',
-    '6ème', 1, 10, JSON.stringify(['boucles']), null);
-
   insertExercise.run(courseId, 'techno', 'Combien de fois ?', 'qcm',
-    'for i in range(5): print("hey") → Combien de fois "hey" s\'affiche ?',
-    JSON.stringify(['4 fois', '5 fois', '6 fois', '1 fois']),
-    '5 fois',
-    'range(5) va de 0 à 4, soit 5 valeurs. Donc "hey" s\'affiche 5 fois.',
+    'for i in range(5): print("hey") → Combien de fois ?',
+    JSON.stringify(['4', '5', '6', '1']),
+    '5', 'range(5) = 0,1,2,3,4 = 5 valeurs.',
     '6ème', 1, 10, JSON.stringify(['boucles']), null);
 
   insertExercise.run(courseId, 'techno', 'Boucle du robot', 'qcm',
-    'Le programme principal d\'un robot est généralement...',
-    JSON.stringify(['Une seule instruction', 'Une grande boucle qui tourne en permanence', 'Un fichier texte', 'Un dessin']),
-    'Une grande boucle qui tourne en permanence',
-    'Le robot lit ses capteurs, décide, bouge... et recommence. C\'est une boucle infinie !',
-    '6ème', 1, 10, JSON.stringify(['boucles', 'robotique']), null);
+    "Le programme principal d'un robot est...",
+    JSON.stringify(["Une seule instruction", "Une grande boucle en permanence", "Un fichier texte", "Un dessin"]),
+    "Une grande boucle en permanence",
+    "Lire capteurs → décider → bouger → recommencer. C'est une boucle infinie !",
+    '6ème', 1, 10, JSON.stringify(['boucles']), null);
 
-  // --- Module 5 : Python - Premier programme ---
+  // --- Module 5 : Python - Ton premier programme ---
   courseId = insertCourse.run('techno',
     'Python - Ton premier programme',
     `<h3>Pourquoi Python ?</h3>
-    <p>Python est le langage le plus utilisé au monde. Il est :</p>
     <ul>
-      <li>Simple à lire (presque comme de l'anglais)</li>
-      <li>Utilisé pour les robots, l'IA, les jeux, les sites web</li>
-      <li>Gratuit et disponible partout</li>
+      <li>Le langage #1 mondial</li>
+      <li>Simple à lire (comme de l'anglais)</li>
+      <li>Utilisé pour les robots, l'IA, les jeux, le web</li>
+      <li><strong>C'est le langage du Raspberry Pi !</strong></li>
     </ul>
-
-    <h3>Installer Python</h3>
-    <p>Tu peux coder en ligne sans rien installer : <strong>replit.com</strong> ou <strong>trinket.io</strong></p>
-    <p>Ou installer Python sur ton PC : <strong>python.org</strong></p>
 
     <h3>Ton premier programme</h3>
     <div class="example">
-      <code>print("Salut Sacha !")</code><br>
-      → Affiche : Salut Sacha !
+      <code>print("Salut Sacha !")</code>
     </div>
 
     <h3>Programme interactif</h3>
@@ -341,736 +263,636 @@ function seedRobotics(db) {
 
     <h3>Les types de données</h3>
     <ul>
-      <li><strong>str</strong> (texte) : "Bonjour", "Sacha"</li>
-      <li><strong>int</strong> (nombre entier) : 11, 42, -5</li>
-      <li><strong>float</strong> (nombre décimal) : 3.14, 9.99</li>
+      <li><strong>str</strong> (texte) : "Bonjour"</li>
+      <li><strong>int</strong> (entier) : 11, 42</li>
+      <li><strong>float</strong> (décimal) : 3.14</li>
       <li><strong>bool</strong> (vrai/faux) : True, False</li>
+      <li><strong>list</strong> (liste) : [1, 2, 3]</li>
     </ul>
 
-    <div class="tip">
-      💡 <strong>Défi :</strong> Crée un programme qui demande ton âge et dit combien d'années il te reste avant 18 ans !
-    </div>
+    <div class="tip">💡 <strong>Défi :</strong> Programme qui demande ton âge et dit combien d'années avant 18 ans !</div>
 
     <div class="shopping-list">
-      🛒 <strong>Matériel :</strong> Un ordi avec accès internet → <a href="https://replit.com" target="_blank">replit.com</a> (gratuit, rien à installer)
+      🛒 <strong>Pour coder maintenant (gratuit) :</strong><br>
+      → <a href="https://replit.com" target="_blank">replit.com</a> (en ligne, rien à installer)<br>
+      → Ou <a href="https://thonny.org" target="_blank">Thonny</a> (éditeur Python simple, sur ordi)
     </div>`,
     '6ème', 1, 5,
     JSON.stringify(['python', 'premier programme', 'phase1']),
-    null,
-    'https://www.youtube.com/watch?v=kqtD5dpn9C8',
-    15
+    null, 'https://www.youtube.com/watch?v=kqtD5dpn9C8', 15
   ).lastInsertRowid;
 
   insertExercise.run(courseId, 'techno', 'Afficher du texte', 'qcm',
     'Comment afficher "Bonjour" en Python ?',
     JSON.stringify(['echo "Bonjour"', 'print("Bonjour")', 'display("Bonjour")', 'write("Bonjour")']),
-    'print("Bonjour")',
-    'En Python, on utilise print() pour afficher du texte à l\'écran.',
+    'print("Bonjour")', 'En Python, print() affiche du texte.',
     '6ème', 1, 10, JSON.stringify(['python']), null);
 
   insertExercise.run(courseId, 'techno', 'Type de donnée', 'qcm',
-    'Quel est le type de la valeur "Sacha" en Python ?',
+    'Quel type pour "Sacha" en Python ?',
     JSON.stringify(['int', 'float', 'str', 'bool']),
-    'str',
-    '"Sacha" est du texte (string = str). Les guillemets indiquent que c\'est du texte.',
-    '6ème', 1, 10, JSON.stringify(['python']), null);
-
-  insertExercise.run(courseId, 'techno', 'input() sert à...', 'qcm',
-    'À quoi sert input() en Python ?',
-    JSON.stringify(['Afficher du texte', 'Demander une information à l\'utilisateur', 'Faire un calcul', 'Dessiner']),
-    'Demander une information à l\'utilisateur',
-    'input() attend que l\'utilisateur tape quelque chose au clavier.',
+    'str', 'Les guillemets = texte = string (str).',
     '6ème', 1, 10, JSON.stringify(['python']), null);
 
   // ============================================================
-  // PHASE 2 : L'ÉLECTRONIQUE (Semaines 5-8)
+  // PHASE 2 : RASPBERRY PI & LINUX (Semaines 5-8)
   // ============================================================
 
-  // --- Module 6 : L'électricité - Les bases ---
+  // --- Module 6 : Le Raspberry Pi - Ton mini-ordinateur ---
   courseId = insertCourse.run('techno',
-    'L\'électricité - Courant, tension, résistance',
-    `<h3>C'est quoi l'électricité ?</h3>
-    <p>L'électricité, c'est le <strong>mouvement des électrons</strong> dans un fil. Imagine de l'eau qui coule dans un tuyau :</p>
+    'Raspberry Pi - Ton mini-ordinateur',
+    `<h3>C'est quoi un Raspberry Pi ?</h3>
+    <p>Un <strong>Raspberry Pi</strong> est un vrai ordinateur de la taille d'une carte bancaire ! Il peut :</p>
     <ul>
-      <li><strong>La tension (Volts)</strong> = la pression de l'eau → pousse les électrons</li>
-      <li><strong>Le courant (Ampères)</strong> = le débit d'eau → quantité d'électrons qui passent</li>
-      <li><strong>La résistance (Ohms)</strong> = un rétrécissement du tuyau → freine les électrons</li>
+      <li>Faire tourner <strong>Linux</strong> (un vrai système d'exploitation)</li>
+      <li>Exécuter du <strong>Python</strong> directement</li>
+      <li>Se connecter en <strong>WiFi</strong></li>
+      <li>Brancher une <strong>caméra</strong> pour voir</li>
+      <li>Contrôler des <strong>moteurs et capteurs</strong> via ses pins GPIO</li>
     </ul>
 
-    <h3>La loi d'Ohm</h3>
+    <h3>Raspberry Pi vs Arduino</h3>
+    <table style="width:100%; text-align:left; border-collapse:collapse;">
+      <tr style="border-bottom:1px solid #ddd;"><th></th><th>Raspberry Pi 4</th><th>Arduino UNO</th></tr>
+      <tr style="border-bottom:1px solid #ddd;"><td>Processeur</td><td>4 coeurs 1.5 GHz</td><td>1 coeur 16 MHz</td></tr>
+      <tr style="border-bottom:1px solid #ddd;"><td>RAM</td><td>4 Go</td><td>2 Ko</td></tr>
+      <tr style="border-bottom:1px solid #ddd;"><td>Système</td><td>Linux complet</td><td>Pas de système</td></tr>
+      <tr style="border-bottom:1px solid #ddd;"><td>Langage</td><td>Python, C, Java...</td><td>C++ uniquement</td></tr>
+      <tr style="border-bottom:1px solid #ddd;"><td>WiFi</td><td>Oui intégré</td><td>Non</td></tr>
+      <tr><td>Caméra</td><td>Oui</td><td>Non</td></tr>
+    </table>
+
+    <h3>Installation du Raspberry Pi</h3>
+    <ol>
+      <li>Télécharge <strong>Raspberry Pi Imager</strong> sur un PC</li>
+      <li>Insère la carte SD dans le PC</li>
+      <li>Grave "Raspberry Pi OS" sur la carte SD</li>
+      <li>Insère la carte SD dans le Raspberry Pi</li>
+      <li>Branche alimentation, écran, clavier, souris</li>
+      <li>Allume → Linux démarre !</li>
+    </ol>
+
+    <h3>Le terminal Linux</h3>
     <div class="example">
-      <strong>U = R × I</strong><br>
-      Tension = Résistance × Courant<br><br>
-      Exemple : Une LED a besoin de 2V et 20mA.<br>
-      Avec une pile de 5V, la résistance nécessaire :<br>
-      R = (5 - 2) / 0.02 = <strong>150 Ohms</strong>
-    </div>
-
-    <h3>Le circuit électrique</h3>
-    <p>L'électricité a besoin d'un <strong>circuit fermé</strong> pour circuler :</p>
-    <ul>
-      <li>Source d'énergie (pile, USB) → fil → composant → retour à la source</li>
-      <li>Si le circuit est ouvert (fil coupé) → rien ne se passe</li>
-    </ul>
-
-    <h3>Sécurité</h3>
-    <p>Avec Arduino et des piles, il n'y a <strong>aucun danger</strong>. On travaille en 5V maximum. Mais ne touche JAMAIS une prise murale (230V) !</p>
-
-    <div class="tip">
-      💡 <strong>Lien maths :</strong> La loi d'Ohm, c'est une équation ! U = R × I. Si tu connais 2 valeurs, tu trouves la 3ème.
-    </div>
-
-    <div class="shopping-list">
-      🛒 <strong>Matériel suggéré :</strong><br>
-      - Kit Arduino Starter (environ 35€) - contient tout le nécessaire !<br>
-      Recommandé : <strong>ELEGOO Kit de Démarrage Arduino UNO R3</strong>
-    </div>`,
-    '6ème', 1, 6,
-    JSON.stringify(['électricité', 'physique', 'circuit', 'phase2']),
-    null,
-    'https://www.youtube.com/watch?v=mc979OhitAg',
-    12
-  ).lastInsertRowid;
-
-  insertExercise.run(courseId, 'techno', 'La tension', 'qcm',
-    'La tension électrique se mesure en...',
-    JSON.stringify(['Ampères', 'Ohms', 'Volts', 'Watts']),
-    'Volts',
-    'La tension se mesure en Volts (V). C\'est la "pression" qui pousse les électrons.',
-    '6ème', 1, 10, JSON.stringify(['électricité']), null);
-
-  insertExercise.run(courseId, 'techno', 'Loi d\'Ohm', 'qcm',
-    'Quelle est la loi d\'Ohm ?',
-    JSON.stringify(['U = R + I', 'U = R × I', 'U = R / I', 'U = R - I']),
-    'U = R × I',
-    'U = R × I. Tension = Résistance × Courant. La formule magique de l\'électricité !',
-    '6ème', 1, 10, JSON.stringify(['électricité']), null);
-
-  insertExercise.run(courseId, 'techno', 'Circuit fermé', 'truefalse',
-    'L\'électricité peut circuler dans un circuit ouvert (fil coupé). Vrai ou faux ?',
-    JSON.stringify(['Vrai', 'Faux']),
-    'Faux',
-    'FAUX ! L\'électricité a besoin d\'un circuit FERMÉ pour circuler. Fil coupé = pas de courant.',
-    '6ème', 1, 10, JSON.stringify(['électricité']), null);
-
-  // --- Module 7 : Arduino - Ton premier microcontrôleur ---
-  courseId = insertCourse.run('techno',
-    'Arduino - Ton premier microcontrôleur',
-    `<h3>C'est quoi Arduino ?</h3>
-    <p>Un <strong>Arduino</strong> est un petit ordinateur de la taille d'une carte bancaire. Il peut :</p>
-    <ul>
-      <li>Lire des <strong>capteurs</strong> (température, distance, lumière)</li>
-      <li>Contrôler des <strong>actionneurs</strong> (LED, moteurs, buzzers)</li>
-      <li>Exécuter <strong>ton programme</strong> en boucle</li>
-    </ul>
-
-    <h3>Les composants de l'Arduino UNO</h3>
-    <ul>
-      <li><strong>Port USB</strong> : pour le brancher à l'ordinateur et le programmer</li>
-      <li><strong>Pins digitaux (0-13)</strong> : envoyer/recevoir des signaux ON/OFF</li>
-      <li><strong>Pins analogiques (A0-A5)</strong> : lire des valeurs (0 à 1023)</li>
-      <li><strong>Pin 5V et GND</strong> : alimentation et masse (le "moins")</li>
-      <li><strong>LED intégrée (pin 13)</strong> : une LED déjà sur la carte !</li>
-    </ul>
-
-    <h3>Le logiciel Arduino IDE</h3>
-    <p>Télécharge <strong>Arduino IDE</strong> gratuitement sur arduino.cc. C'est là que tu écris tes programmes !</p>
-
-    <h3>Structure d'un programme Arduino</h3>
-    <div class="example">
-      <code>void setup() {<br>
-      &nbsp;&nbsp;// S'exécute 1 seule fois au démarrage<br>
-      &nbsp;&nbsp;pinMode(13, OUTPUT); // Pin 13 en sortie<br>
-      }<br><br>
-      void loop() {<br>
-      &nbsp;&nbsp;// Se répète en boucle infinie<br>
-      &nbsp;&nbsp;digitalWrite(13, HIGH); // Allumer LED<br>
-      &nbsp;&nbsp;delay(1000);            // Attendre 1 seconde<br>
-      &nbsp;&nbsp;digitalWrite(13, LOW);  // Éteindre LED<br>
-      &nbsp;&nbsp;delay(1000);            // Attendre 1 seconde<br>
-      }</code>
+      <code>pwd</code> → Affiche où tu es<br>
+      <code>ls</code> → Liste les fichiers<br>
+      <code>cd dossier</code> → Entre dans un dossier<br>
+      <code>python3 mon_script.py</code> → Lance ton programme<br>
+      <code>sudo</code> → Mode administrateur (super-pouvoir !)
     </div>
 
     <div class="tip">
-      💡 <strong>C'est comme Python mais en C++ !</strong> setup() = ce qui se passe au début, loop() = la boucle infinie du robot.
+      💡 <strong>Lien école :</strong> Linux est utilisé sur 96% des serveurs dans le monde. En l'apprenant maintenant, tu as une avance énorme !
     </div>
 
     <div class="shopping-list">
       🛒 <strong>Matériel nécessaire :</strong><br>
-      - <strong>Arduino UNO R3</strong> (ou compatible ELEGOO) ~12€<br>
-      - <strong>Câble USB</strong> (inclus dans le kit)<br>
-      - <strong>Breadboard</strong> (plaque d'essai) ~3€<br>
-      - <strong>Kit de fils</strong> (jumper wires) ~4€<br>
-      → Tout est inclus dans le kit ELEGOO (~35€)
+      - <strong>Raspberry Pi 4 Model B (4 Go RAM)</strong> ~55€<br>
+      - <strong>Alimentation USB-C officielle</strong> ~10€<br>
+      - <strong>Carte micro-SD 32 Go</strong> ~8€<br>
+      - <strong>Câble micro-HDMI</strong> (pour l'écran, setup initial) ~8€<br>
+      - Clavier + souris USB (tu en as sûrement déjà)<br>
+      → Après le setup initial, tu pourras te connecter en WiFi depuis ton PC !
     </div>`,
-    '6ème', 2, 7,
-    JSON.stringify(['arduino', 'microcontrôleur', 'électronique', 'phase2']),
-    null,
-    'https://www.youtube.com/watch?v=fJWR7dBag0g',
-    15
+    '6ème', 1, 6,
+    JSON.stringify(['raspberry pi', 'linux', 'setup', 'phase2']),
+    null, 'https://www.youtube.com/watch?v=BpJCAafw2qE', 15
   ).lastInsertRowid;
 
-  insertExercise.run(courseId, 'techno', 'Arduino c\'est quoi ?', 'qcm',
-    'Un Arduino est...',
-    JSON.stringify(['Un gros ordinateur', 'Un petit ordinateur programmable', 'Un jeu vidéo', 'Un robot tout fait']),
-    'Un petit ordinateur programmable',
-    'L\'Arduino est un petit ordinateur programmable qui lit des capteurs et contrôle des moteurs/LED.',
-    '6ème', 2, 15, JSON.stringify(['arduino']), null);
+  insertExercise.run(courseId, 'techno', "Raspberry Pi c'est quoi ?", 'qcm',
+    "Un Raspberry Pi est...",
+    JSON.stringify(["Un fruit", "Un mini-ordinateur complet avec Linux", "Une calculatrice", "Un jeu vidéo"]),
+    "Un mini-ordinateur complet avec Linux",
+    "Le Raspberry Pi fait tourner Linux, Python, WiFi, caméra... un vrai ordi de poche !",
+    '6ème', 1, 10, JSON.stringify(['raspberry pi']), null);
 
-  insertExercise.run(courseId, 'techno', 'setup() et loop()', 'qcm',
-    'Dans un programme Arduino, setup() s\'exécute...',
-    JSON.stringify(['En boucle', '1 seule fois au démarrage', 'Quand on appuie un bouton', 'Jamais']),
-    '1 seule fois au démarrage',
-    'setup() = 1 fois au démarrage pour configurer. loop() = en boucle pour le programme principal.',
-    '6ème', 2, 15, JSON.stringify(['arduino']), null);
+  insertExercise.run(courseId, 'techno', 'RPi vs Arduino', 'qcm',
+    "Quel avantage du Raspberry Pi sur l'Arduino ?",
+    JSON.stringify(["Moins cher", "WiFi intégré + Python + caméra", "Plus petit", "Plus simple"]),
+    "WiFi intégré + Python + caméra",
+    "Le RPi a WiFi, Python natif, caméra, Linux... beaucoup plus puissant !",
+    '6ème', 1, 10, JSON.stringify(['raspberry pi']), null);
 
-  insertExercise.run(courseId, 'techno', 'Allumer une LED', 'qcm',
-    'Pour allumer une LED sur le pin 13, on utilise...',
-    JSON.stringify(['digitalWrite(13, HIGH)', 'analogRead(13)', 'print(13)', 'turnOn(13)']),
-    'digitalWrite(13, HIGH)',
-    'digitalWrite(pin, HIGH) envoie du courant. HIGH = allumé, LOW = éteint.',
-    '6ème', 2, 15, JSON.stringify(['arduino']), null);
+  insertExercise.run(courseId, 'techno', 'Commande sudo', 'qcm',
+    "À quoi sert 'sudo' dans le terminal Linux ?",
+    JSON.stringify(["Fermer l'ordinateur", "Exécuter en mode administrateur", "Ouvrir un fichier", "Se connecter au WiFi"]),
+    "Exécuter en mode administrateur",
+    "sudo = 'Super User DO'. C'est le super-pouvoir administrateur de Linux !",
+    '6ème', 1, 10, JSON.stringify(['linux']), null);
 
-  // --- Module 8 : Capteurs - Le robot voit et entend ---
+  // --- Module 7 : Le PiCar-X - Ton robot ---
   courseId = insertCourse.run('techno',
-    'Les capteurs - Le robot voit et entend',
-    `<h3>Les sens du robot</h3>
-    <p>Un robot "voit" et "sent" grâce à ses <strong>capteurs</strong>. C'est comme ses yeux, ses oreilles et ses mains !</p>
-
-    <h3>Les capteurs principaux</h3>
+    'PiCar-X - Découverte de ton robot',
+    `<h3>C'est quoi le PiCar-X ?</h3>
+    <p>Le <strong>SunFounder PiCar-X</strong> est un kit robot complet qui se branche sur un Raspberry Pi. Il a :</p>
     <ul>
-      <li><strong>Capteur ultrasonique (HC-SR04)</strong> : mesure la distance (comme un sonar de chauve-souris). Portée : 2 cm à 4 m.</li>
-      <li><strong>Capteur infrarouge (IR)</strong> : détecte le noir/blanc (pour suivre une ligne)</li>
-      <li><strong>Capteur de lumière (LDR)</strong> : mesure la luminosité</li>
-      <li><strong>Capteur de température (DHT11)</strong> : mesure la température et l'humidité</li>
-      <li><strong>Bouton poussoir</strong> : le capteur le plus simple ! ON ou OFF</li>
+      <li><strong>Un module caméra</strong> : le robot "voit" son environnement</li>
+      <li><strong>Un capteur ultrasonique</strong> : mesure la distance (comme un sonar)</li>
+      <li><strong>Des capteurs de suivi de ligne</strong> : suit des tracés au sol</li>
+      <li><strong>2 moteurs DC</strong> : pour avancer/reculer</li>
+      <li><strong>Un servo de direction</strong> : pour tourner (comme un vrai volant)</li>
+      <li><strong>Un servo d'inclinaison caméra</strong> : la caméra "lève la tête"</li>
+      <li><strong>Un module son</strong> : le robot peut "parler" !</li>
+      <li><strong>Programmation 100% Python</strong></li>
     </ul>
 
-    <h3>Lire un capteur avec Arduino</h3>
+    <h3>Montage du robot</h3>
+    <ol>
+      <li>Assembler le châssis (vis + pièces fournies) ~30 min</li>
+      <li>Fixer les moteurs et les roues</li>
+      <li>Installer les servos (direction + caméra)</li>
+      <li>Brancher le Raspberry Pi sur le HAT (carte d'extension)</li>
+      <li>Connecter les capteurs</li>
+      <li>Installer la caméra Pi</li>
+      <li>Installer les piles</li>
+    </ol>
+
+    <h3>Installation logicielle</h3>
     <div class="example">
-      <strong>Capteur de distance :</strong><br>
-      <code>#include "NewPing.h"<br>
-      NewPing sonar(7, 8, 200); // trig=7, echo=8, max=200cm<br><br>
-      void loop() {<br>
-      &nbsp;&nbsp;int distance = sonar.ping_cm();<br>
-      &nbsp;&nbsp;if (distance < 20) {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;// Obstacle proche ! Tourner<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;tourner();<br>
-      &nbsp;&nbsp;} else {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;avancer();<br>
-      &nbsp;&nbsp;}<br>
-      }</code>
+      <code># Sur le Raspberry Pi, ouvrir le terminal :<br>
+      cd ~<br>
+      git clone https://github.com/sunfounder/picar-x.git<br>
+      cd picar-x<br>
+      sudo python3 setup.py install</code>
+    </div>
+
+    <h3>Premier test !</h3>
+    <div class="example">
+      <code>from picarx import Picarx<br>
+      import time<br><br>
+      px = Picarx()<br>
+      px.forward(30)  # avancer à 30% de puissance<br>
+      time.sleep(2)   # pendant 2 secondes<br>
+      px.stop()        # stop !<br>
+      print("Mon robot bouge !")</code>
+    </div>
+
+    <div class="tip">
+      💡 <strong>C'est du Python !</strong> Le même langage que tu as appris dans les modules précédents. Pas de nouveau langage à apprendre.
+    </div>
+
+    <div class="shopping-list">
+      🛒 <strong>Kit PiCar-X :</strong><br>
+      - <strong>SunFounder PiCar-X Kit</strong> ~80€<br>
+      (châssis, moteurs, servos, capteurs, HAT, câbles, vis)<br>
+      - <strong>Caméra Pi v2</strong> ~25€ (si pas incluse)<br>
+      - <strong>2 piles 18650</strong> + chargeur ~15€<br><br>
+      <strong>Total avec le Raspberry Pi : ~170€</strong>
+    </div>`,
+    '6ème', 2, 7,
+    JSON.stringify(['picar-x', 'robot', 'montage', 'phase2']),
+    null, 'https://www.youtube.com/watch?v=WK9TRHnLpnI', 20
+  ).lastInsertRowid;
+
+  insertExercise.run(courseId, 'techno', 'Le PiCar-X', 'qcm',
+    "Quel langage utilise le PiCar-X ?",
+    JSON.stringify(["C++", "Java", "Python", "Scratch"]),
+    "Python", "Le PiCar-X se programme 100% en Python. Le même langage que tu connais déjà !",
+    '6ème', 2, 15, JSON.stringify(['picar-x']), null);
+
+  insertExercise.run(courseId, 'techno', "Premier mouvement", 'qcm',
+    "px.forward(30) fait quoi ?",
+    JSON.stringify(["Le robot recule", "Le robot avance à 30% de puissance", "Le robot tourne", "Rien"]),
+    "Le robot avance à 30% de puissance",
+    "forward(30) = avancer à 30% de la vitesse max. Tu peux aller jusqu'à 100 !",
+    '6ème', 2, 15, JSON.stringify(['picar-x']), null);
+
+  // --- Module 8 : L'électricité et les capteurs ---
+  courseId = insertCourse.run('techno',
+    "L'électricité et les capteurs du robot",
+    `<h3>Les bases de l'électricité</h3>
+    <ul>
+      <li><strong>Tension (Volts)</strong> : la "pression" qui pousse les électrons</li>
+      <li><strong>Courant (Ampères)</strong> : le "débit" d'électrons</li>
+      <li><strong>Résistance (Ohms)</strong> : ce qui freine le courant</li>
+    </ul>
+    <div class="example">
+      <strong>Loi d'Ohm :</strong> U = R × I<br>
+      Le Raspberry Pi fonctionne en 5V. Les capteurs en 3.3V ou 5V.
+    </div>
+
+    <h3>Les capteurs du PiCar-X</h3>
+    <ul>
+      <li><strong>Ultrasonique</strong> : mesure la distance (2cm à 4m). Envoie un son et chronomètre l'écho.</li>
+      <li><strong>Capteurs IR (×3)</strong> : détectent noir/blanc sous le robot pour suivre une ligne</li>
+      <li><strong>Caméra Pi</strong> : vision par ordinateur ! Détecte des objets, des couleurs, des visages</li>
+    </ul>
+
+    <h3>Lire un capteur en Python</h3>
+    <div class="example">
+      <code>from picarx import Picarx<br><br>
+      px = Picarx()<br><br>
+      # Distance devant le robot<br>
+      distance = px.ultrasonic.read()<br>
+      print(f"Obstacle à {distance} cm")<br><br>
+      # Capteurs de ligne (3 valeurs)<br>
+      line = px.grayscale.read()<br>
+      print(f"Ligne : {line}")</code>
     </div>
 
     <h3>Analogique vs Digital</h3>
     <ul>
-      <li><strong>Digital</strong> = ON ou OFF (0 ou 1). Ex: bouton, IR</li>
-      <li><strong>Analogique</strong> = une valeur entre 0 et 1023. Ex: lumière, température</li>
+      <li><strong>Digital</strong> : ON ou OFF (bouton, IR simple)</li>
+      <li><strong>Analogique</strong> : une valeur variable (lumière, distance, température)</li>
     </ul>
 
-    <div class="tip">
-      💡 <strong>Lien sciences :</strong> Le capteur ultrasonique utilise les ondes sonores, comme les dauphins ! Il envoie un "bip" et mesure le temps avant le retour de l'écho.
-    </div>
-
-    <div class="shopping-list">
-      🛒 <strong>Matériel :</strong> Tout est dans le kit ELEGOO !<br>
-      - Capteur HC-SR04 (distance)<br>
-      - Capteurs IR (suivi de ligne)<br>
-      - LED + résistances<br>
-      - Boutons poussoir
-    </div>`,
+    <div class="tip">💡 <strong>Lien maths :</strong> U = R × I, c'est une équation ! Si tu connais 2 valeurs, tu calcules la 3ème.</div>`,
     '6ème', 2, 8,
-    JSON.stringify(['capteurs', 'électronique', 'arduino', 'phase2']),
-    null,
-    'https://www.youtube.com/watch?v=ZzKNcuaSEKQ',
-    15
+    JSON.stringify(['capteurs', 'électricité', 'picar-x', 'phase2']),
+    null, 'https://www.youtube.com/watch?v=mc979OhitAg', 15
   ).lastInsertRowid;
 
-  insertExercise.run(courseId, 'techno', 'Capteur de distance', 'qcm',
-    'Le capteur HC-SR04 mesure...',
-    JSON.stringify(['La température', 'La distance', 'La couleur', 'Le poids']),
-    'La distance',
-    'Le HC-SR04 utilise des ultrasons pour mesurer la distance. Comme un sonar !',
+  insertExercise.run(courseId, 'techno', 'Capteur ultrasonique', 'qcm',
+    "Le capteur ultrasonique mesure...",
+    JSON.stringify(["La température", "La distance", "La couleur", "Le poids"]),
+    "La distance", "Il envoie un ultrason et mesure le temps de retour de l'écho.",
     '6ème', 2, 15, JSON.stringify(['capteurs']), null);
 
-  insertExercise.run(courseId, 'techno', 'Analogique vs digital', 'qcm',
-    'Un bouton poussoir est un capteur...',
-    JSON.stringify(['Analogique (valeurs de 0 à 1023)', 'Digital (ON ou OFF)', 'Les deux', 'Ni l\'un ni l\'autre']),
-    'Digital (ON ou OFF)',
-    'Un bouton a 2 états : appuyé (ON/1) ou relâché (OFF/0). C\'est digital.',
-    '6ème', 2, 15, JSON.stringify(['capteurs']), null);
-
-  insertExercise.run(courseId, 'techno', 'Le sonar du robot', 'qcm',
-    'Comment le capteur ultrasonique mesure la distance ?',
-    JSON.stringify(['Il regarde avec une caméra', 'Il envoie un son et mesure le temps de retour', 'Il pèse l\'objet', 'Il utilise un laser']),
-    'Il envoie un son et mesure le temps de retour',
-    'Le capteur envoie un ultrason et chronomètre le temps avant que l\'écho revienne.',
-    '6ème', 2, 15, JSON.stringify(['capteurs']), null);
+  insertExercise.run(courseId, 'techno', 'Loi d\'Ohm', 'qcm',
+    "La loi d'Ohm : U = R × I. U se mesure en...",
+    JSON.stringify(["Ampères", "Ohms", "Volts", "Watts"]),
+    "Volts", "U = tension, mesurée en Volts. R en Ohms, I en Ampères.",
+    '6ème', 2, 15, JSON.stringify(['électricité']), null);
 
   // ============================================================
-  // PHASE 3 : LA MÉCANIQUE (Semaines 9-12)
+  // PHASE 3 : ROBOT EN ACTION (Semaines 9-12)
   // ============================================================
 
-  // --- Module 9 : Les moteurs ---
+  // --- Module 9 : Programmer les mouvements ---
   courseId = insertCourse.run('techno',
-    'Les moteurs - Faire bouger le robot',
-    `<h3>Les types de moteurs</h3>
-    <ul>
-      <li><strong>Moteur DC (courant continu)</strong> : tourne en continu, contrôle la vitesse. Pour les roues !</li>
-      <li><strong>Servo-moteur</strong> : se positionne à un angle précis (0° à 180°). Pour la direction, un bras...</li>
-      <li><strong>Moteur pas à pas (stepper)</strong> : très précis, avance "pas par pas". Pour les imprimantes 3D !</li>
-    </ul>
-
-    <h3>Le driver moteur (L298N ou L293D)</h3>
-    <p>L'Arduino ne peut pas alimenter un moteur directement (pas assez puissant). On utilise un <strong>driver</strong> = un amplificateur de puissance.</p>
-
-    <div class="example">
-      <strong>Contrôler un moteur DC :</strong><br>
-      <code>// Pins du driver moteur<br>
-      int ENA = 9;  // Vitesse (PWM)<br>
-      int IN1 = 8;  // Direction 1<br>
-      int IN2 = 7;  // Direction 2<br><br>
-      void avancer() {<br>
-      &nbsp;&nbsp;digitalWrite(IN1, HIGH);<br>
-      &nbsp;&nbsp;digitalWrite(IN2, LOW);<br>
-      &nbsp;&nbsp;analogWrite(ENA, 200); // Vitesse 0-255<br>
-      }<br><br>
-      void reculer() {<br>
-      &nbsp;&nbsp;digitalWrite(IN1, LOW);<br>
-      &nbsp;&nbsp;digitalWrite(IN2, HIGH);<br>
-      &nbsp;&nbsp;analogWrite(ENA, 200);<br>
-      }</code>
-    </div>
-
-    <h3>Servo-moteur</h3>
-    <div class="example">
-      <code>#include <Servo.h><br>
-      Servo monServo;<br><br>
-      void setup() {<br>
-      &nbsp;&nbsp;monServo.attach(9); // Pin 9<br>
-      }<br>
-      void loop() {<br>
-      &nbsp;&nbsp;monServo.write(0);   // Aller à 0°<br>
-      &nbsp;&nbsp;delay(1000);<br>
-      &nbsp;&nbsp;monServo.write(90);  // Aller à 90°<br>
-      &nbsp;&nbsp;delay(1000);<br>
-      &nbsp;&nbsp;monServo.write(180); // Aller à 180°<br>
-      &nbsp;&nbsp;delay(1000);<br>
-      }</code>
-    </div>
-
-    <div class="tip">
-      💡 <strong>Lien maths :</strong> La vitesse du moteur se contrôle avec un signal PWM (0-255). C'est une proportion : 128 = 50% de puissance !
-    </div>
-
-    <div class="shopping-list">
-      🛒 <strong>Matériel :</strong><br>
-      - 2 moteurs DC + roues (~8€)<br>
-      - 1 driver moteur L298N (~5€)<br>
-      - 1 servo-moteur SG90 (~3€)<br>
-      - Piles 9V ou pack 4xAA<br>
-      → Ou kit robot complet ELEGOO Smart Robot Car V4 (~70€)
-    </div>`,
-    '6ème', 2, 9,
-    JSON.stringify(['moteurs', 'mécanique', 'arduino', 'phase3']),
-    null,
-    'https://www.youtube.com/watch?v=LXURLvga8bQ',
-    15
-  ).lastInsertRowid;
-
-  insertExercise.run(courseId, 'techno', 'Types de moteurs', 'qcm',
-    'Quel type de moteur se positionne à un angle précis ?',
-    JSON.stringify(['Moteur DC', 'Servo-moteur', 'Moteur pas à pas', 'Moteur diesel']),
-    'Servo-moteur',
-    'Le servo-moteur peut aller à un angle précis (0° à 180°). Parfait pour une tête de robot !',
-    '6ème', 2, 15, JSON.stringify(['moteurs']), null);
-
-  insertExercise.run(courseId, 'techno', 'Le driver moteur', 'qcm',
-    'Pourquoi a-t-on besoin d\'un driver (L298N) pour les moteurs ?',
-    JSON.stringify(['Pour les rendre plus jolis', 'L\'Arduino n\'est pas assez puissant seul', 'Pour les connecter au WiFi', 'Ce n\'est pas nécessaire']),
-    'L\'Arduino n\'est pas assez puissant seul',
-    'L\'Arduino envoie des signaux faibles. Le driver amplifie la puissance pour faire tourner les moteurs.',
-    '6ème', 2, 15, JSON.stringify(['moteurs']), null);
-
-  insertExercise.run(courseId, 'techno', 'Vitesse du moteur', 'qcm',
-    'analogWrite(ENA, 128) donne au moteur quelle puissance ?',
-    JSON.stringify(['100%', '75%', '50%', '25%']),
-    '50%',
-    '128 / 255 ≈ 50%. Le PWM va de 0 (arrêt) à 255 (pleine puissance). 128 = la moitié.',
-    '6ème', 2, 15, JSON.stringify(['moteurs']), null);
-
-  // --- Module 10 : Construire le châssis ---
-  courseId = insertCourse.run('techno',
-    'Construire le châssis du robot',
-    `<h3>Le châssis, c'est le squelette du robot</h3>
-    <p>C'est la structure qui porte tous les composants : moteurs, carte Arduino, capteurs, piles.</p>
-
-    <h3>Les options de châssis</h3>
-    <ul>
-      <li><strong>Kit prêt à monter</strong> : le plus simple, tout est prévu (ELEGOO Robot Car)</li>
-      <li><strong>Impression 3D</strong> : si tu as accès à une imprimante 3D</li>
-      <li><strong>Recyclage créatif</strong> : carton épais, bois, boîtes plastique</li>
-    </ul>
-
-    <h3>Configuration 2 roues + roulette</h3>
-    <p>Le robot le plus simple a :</p>
-    <ul>
-      <li>2 roues motorisées à l'arrière</li>
-      <li>1 roulette libre à l'avant (comme une roue de chaise)</li>
-      <li>Pour tourner : une roue va plus vite que l'autre</li>
-    </ul>
-
-    <h3>Plan de montage</h3>
-    <ol>
-      <li>Fixer les 2 moteurs DC au châssis (vis ou colle chaude)</li>
-      <li>Mettre les roues sur les moteurs</li>
-      <li>Fixer la roulette à l'avant</li>
-      <li>Placer l'Arduino et le driver moteur au centre</li>
-      <li>Fixer le pack de piles</li>
-      <li>Monter le capteur ultrasonique à l'avant (les "yeux")</li>
-    </ol>
-
-    <div class="example">
-      <strong>Schéma de câblage :</strong><br>
-      Pile → Driver moteur (12V + GND)<br>
-      Driver → Moteur gauche (OUT1, OUT2)<br>
-      Driver → Moteur droit (OUT3, OUT4)<br>
-      Arduino pin 9 → ENA (vitesse moteur G)<br>
-      Arduino pin 10 → ENB (vitesse moteur D)<br>
-      Arduino 5V → Capteur ultrasonique VCC<br>
-      Arduino pin 7 → Capteur TRIG<br>
-      Arduino pin 8 → Capteur ECHO
-    </div>
-
-    <div class="tip">
-      💡 <strong>Astuce recyclage :</strong> Tu peux utiliser une boîte de chaussures comme châssis ! Solide et facile à percer.
-    </div>
-
-    <div class="shopping-list">
-      🛒 <strong>Option 1 - Kit tout-en-un :</strong><br>
-      ELEGOO Smart Robot Car Kit V4 (~70€) → tout inclus !<br><br>
-      🛒 <strong>Option 2 - DIY :</strong><br>
-      - Châssis 2WD en acrylique (~10€)<br>
-      - 2 moteurs DC avec roues (~8€)<br>
-      - 1 roulette pivotante (~2€)<br>
-      - Vis, entretoises, colle chaude
-    </div>`,
-    '6ème', 2, 10,
-    JSON.stringify(['châssis', 'construction', 'mécanique', 'phase3']),
-    null,
-    'https://www.youtube.com/watch?v=1n_KjpMfVR0',
-    20
-  ).lastInsertRowid;
-
-  insertExercise.run(courseId, 'techno', 'Configuration basique', 'qcm',
-    'Le robot le plus simple utilise...',
-    JSON.stringify(['4 roues motorisées', '2 roues motorisées + 1 roulette libre', '6 pattes', '1 seule roue']),
-    '2 roues motorisées + 1 roulette libre',
-    '2 roues arrière motorisées pour avancer + 1 roulette avant pour l\'équilibre. Simple et efficace !',
-    '6ème', 2, 15, JSON.stringify(['châssis']), null);
-
-  insertExercise.run(courseId, 'techno', 'Pour tourner', 'qcm',
-    'Comment le robot tourne-t-il à droite ?',
-    JSON.stringify(['Les 2 roues tournent à droite', 'La roue gauche va plus vite que la droite', 'Il a un volant', 'Il penche à droite']),
-    'La roue gauche va plus vite que la droite',
-    'Pour tourner à droite, la roue gauche tourne plus vite (ou la droite s\'arrête). Différence de vitesse = virage !',
-    '6ème', 2, 15, JSON.stringify(['châssis']), null);
-
-  // ============================================================
-  // PHASE 4 : LE ROBOT AUTONOME (Semaines 13-16)
-  // ============================================================
-
-  // --- Module 11 : Programmer les mouvements ---
-  courseId = insertCourse.run('techno',
-    'Programmer les mouvements du robot',
+    'Programmer les mouvements du PiCar-X',
     `<h3>Les fonctions de mouvement</h3>
-    <p>On crée des fonctions pour chaque mouvement. C'est plus propre et réutilisable !</p>
-
     <div class="example">
-      <code>// === FONCTIONS DE MOUVEMENT ===<br>
-      void avancer(int vitesse) {<br>
-      &nbsp;&nbsp;motorG_avant(vitesse);<br>
-      &nbsp;&nbsp;motorD_avant(vitesse);<br>
-      }<br><br>
-      void reculer(int vitesse) {<br>
-      &nbsp;&nbsp;motorG_arriere(vitesse);<br>
-      &nbsp;&nbsp;motorD_arriere(vitesse);<br>
-      }<br><br>
-      void tournerDroite(int vitesse) {<br>
-      &nbsp;&nbsp;motorG_avant(vitesse);<br>
-      &nbsp;&nbsp;motorD_arriere(vitesse / 2);<br>
-      }<br><br>
-      void tournerGauche(int vitesse) {<br>
-      &nbsp;&nbsp;motorG_arriere(vitesse / 2);<br>
-      &nbsp;&nbsp;motorD_avant(vitesse);<br>
-      }<br><br>
-      void stop() {<br>
-      &nbsp;&nbsp;motorG_avant(0);<br>
-      &nbsp;&nbsp;motorD_avant(0);<br>
-      }</code>
+      <code>from picarx import Picarx<br>
+      import time<br><br>
+      px = Picarx()<br><br>
+      # Avancer<br>
+      px.forward(50)<br>
+      time.sleep(2)<br><br>
+      # Tourner à droite (angle de braquage)<br>
+      px.set_dir_servo_angle(30)  # 30° à droite<br>
+      px.forward(40)<br>
+      time.sleep(1)<br><br>
+      # Remettre droit<br>
+      px.set_dir_servo_angle(0)<br><br>
+      # Reculer<br>
+      px.backward(30)<br>
+      time.sleep(1)<br><br>
+      # Stop<br>
+      px.stop()</code>
     </div>
 
-    <h3>Un premier parcours</h3>
+    <h3>Créer tes propres fonctions</h3>
     <div class="example">
-      <code>void loop() {<br>
-      &nbsp;&nbsp;avancer(200);<br>
-      &nbsp;&nbsp;delay(2000);  // 2 secondes tout droit<br>
-      &nbsp;&nbsp;tournerDroite(150);<br>
-      &nbsp;&nbsp;delay(500);   // tourner 0.5 seconde<br>
-      &nbsp;&nbsp;avancer(200);<br>
-      &nbsp;&nbsp;delay(2000);  // 2 secondes tout droit<br>
-      &nbsp;&nbsp;stop();<br>
-      &nbsp;&nbsp;delay(5000);  // pause 5 secondes<br>
-      }</code>
+      <code>def tourner_droite(vitesse=40, duree=1):<br>
+      &nbsp;&nbsp;px.set_dir_servo_angle(30)<br>
+      &nbsp;&nbsp;px.forward(vitesse)<br>
+      &nbsp;&nbsp;time.sleep(duree)<br>
+      &nbsp;&nbsp;px.set_dir_servo_angle(0)<br><br>
+      def faire_carre(vitesse=40):<br>
+      &nbsp;&nbsp;for i in range(4):<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;px.forward(vitesse)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;time.sleep(2)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;tourner_droite(vitesse, 0.8)<br>
+      &nbsp;&nbsp;px.stop()</code>
     </div>
 
-    <div class="tip">
-      💡 <strong>Défi :</strong> Programme ton robot pour faire un carré ! (avancer, tourner 90°, avancer, tourner 90°... 4 fois)
-    </div>`,
-    '6ème', 2, 11,
-    JSON.stringify(['programmation', 'mouvements', 'arduino', 'phase4']),
+    <div class="tip">💡 <strong>Défi :</strong> Programme le robot pour écrire la lettre S au sol !</div>`,
+    '6ème', 2, 9,
+    JSON.stringify(['mouvements', 'programmation', 'picar-x', 'phase3']),
     null, null, 15
   ).lastInsertRowid;
 
-  insertExercise.run(courseId, 'techno', 'Fonction avancer', 'qcm',
-    'Pour que le robot avance en ligne droite, il faut que...',
-    JSON.stringify(['Un seul moteur tourne', 'Les 2 moteurs tournent à la même vitesse dans le même sens', 'Les moteurs tournent en sens inverse', 'Le robot ne bouge pas']),
-    'Les 2 moteurs tournent à la même vitesse dans le même sens',
-    'Les 2 moteurs tournent en avant à la même vitesse = le robot va tout droit.',
+  insertExercise.run(courseId, 'techno', 'Direction du servo', 'qcm',
+    "set_dir_servo_angle(30) fait...",
+    JSON.stringify(["Avancer", "Braquer les roues à 30° vers la droite", "Reculer", "Tourner la caméra"]),
+    "Braquer les roues à 30° vers la droite",
+    "Le servo de direction oriente les roues. 0 = droit, >0 = droite, <0 = gauche.",
     '6ème', 2, 15, JSON.stringify(['mouvements']), null);
 
   insertExercise.run(courseId, 'techno', 'Faire un carré', 'qcm',
-    'Pour faire un carré, combien de fois le robot doit-il tourner à 90° ?',
-    JSON.stringify(['2 fois', '3 fois', '4 fois', '1 fois']),
-    '4 fois',
-    'Un carré a 4 côtés et 4 angles droits. Donc : avancer + tourner 90° × 4 !',
+    'Pour un carré : avancer + tourner 90°, combien de fois ?',
+    JSON.stringify(['2', '3', '4', '6']),
+    '4', '4 côtés = 4 fois (avancer + tourner 90°).',
     '6ème', 2, 15, JSON.stringify(['mouvements']), null);
 
-  // --- Module 12 : Éviter les obstacles ---
+  // --- Module 10 : Éviter les obstacles ---
   courseId = insertCourse.run('techno',
     'Éviter les obstacles - Robot intelligent',
     `<h3>Le robot qui "voit" les murs</h3>
-    <p>Avec le capteur ultrasonique, le robot mesure la distance devant lui. S'il détecte un obstacle → il tourne !</p>
-
-    <h3>L'algorithme d'évitement</h3>
     <div class="example">
-      <code>void loop() {<br>
-      &nbsp;&nbsp;int distance = mesurer_distance();<br><br>
-      &nbsp;&nbsp;if (distance < 20) {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;// Obstacle à moins de 20 cm !<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;stop();<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;delay(200);<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;reculer(150);<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;delay(400);<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;tournerDroite(150);<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;delay(500);<br>
-      &nbsp;&nbsp;} else {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;// Voie libre !<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;avancer(200);<br>
-      &nbsp;&nbsp;}<br>
-      }</code>
+      <code>from picarx import Picarx<br>
+      import time<br><br>
+      px = Picarx()<br>
+      DISTANCE_MIN = 25  # cm<br><br>
+      try:<br>
+      &nbsp;&nbsp;while True:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;distance = px.ultrasonic.read()<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;print(f"Distance: {distance} cm")<br><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;if distance > 0 and distance < DISTANCE_MIN:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Obstacle ! Reculer et tourner<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.stop()<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.backward(30)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;time.sleep(0.5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.set_dir_servo_angle(-30)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.forward(30)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;time.sleep(0.8)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.set_dir_servo_angle(0)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.forward(40)<br><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;time.sleep(0.1)<br>
+      except KeyboardInterrupt:<br>
+      &nbsp;&nbsp;px.stop()</code>
     </div>
 
-    <h3>Amélioration : regarder à gauche ET à droite</h3>
-    <p>Avec un servo-moteur qui porte le capteur, le robot peut "tourner la tête" !</p>
-    <div class="example">
-      <code>if (distance < 20) {<br>
-      &nbsp;&nbsp;stop();<br>
-      &nbsp;&nbsp;int distDroite = regarder(0);   // tourner capteur à droite<br>
-      &nbsp;&nbsp;int distGauche = regarder(180); // tourner capteur à gauche<br>
-      &nbsp;&nbsp;regarder(90); // remettre droit<br><br>
-      &nbsp;&nbsp;if (distDroite > distGauche) {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;tournerDroite(150);<br>
-      &nbsp;&nbsp;} else {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;tournerGauche(150);<br>
-      &nbsp;&nbsp;}<br>
-      }</code>
-    </div>
+    <h3>Amélioration : scanner gauche-droite</h3>
+    <p>Avec le servo de la caméra, le robot peut "regarder" à gauche et à droite avant de choisir.</p>
 
-    <div class="tip">
-      💡 <strong>C'est de l'IA basique !</strong> Le robot prend une décision en fonction de ce qu'il perçoit. C'est le début de l'intelligence artificielle embarquée !
-    </div>`,
-    '6ème', 3, 12,
-    JSON.stringify(['obstacle', 'autonome', 'capteurs', 'phase4']),
-    null,
-    'https://www.youtube.com/watch?v=oPVlLrjNR_U',
-    20
-  ).lastInsertRowid;
-
-  insertExercise.run(courseId, 'techno', 'Distance de détection', 'qcm',
-    'Si distance < 20 signifie quoi pour le robot ?',
-    JSON.stringify(['L\'obstacle est à plus de 20 cm', 'L\'obstacle est à moins de 20 cm', 'Il n\'y a pas d\'obstacle', 'Le robot est cassé']),
-    'L\'obstacle est à moins de 20 cm',
-    'distance < 20 = la distance mesurée est inférieure à 20 cm. Obstacle proche → il faut tourner !',
-    '6ème', 3, 15, JSON.stringify(['obstacle']), null);
-
-  insertExercise.run(courseId, 'techno', 'Regarder autour', 'qcm',
-    'Pourquoi utiliser un servo-moteur avec le capteur de distance ?',
-    JSON.stringify(['Pour faire joli', 'Pour que le robot regarde à gauche et à droite', 'Pour aller plus vite', 'Ce n\'est pas utile']),
-    'Pour que le robot regarde à gauche et à droite',
-    'Le servo tourne le capteur pour mesurer la distance à gauche ET à droite. Le robot choisit le meilleur chemin !',
-    '6ème', 3, 15, JSON.stringify(['obstacle']), null);
-
-  // --- Module 13 : Suivre une ligne ---
-  courseId = insertCourse.run('techno',
-    'Suivre une ligne - Le robot qui trace',
-    `<h3>Comment ça marche ?</h3>
-    <p>Des capteurs infrarouges (IR) sous le robot détectent une ligne noire sur fond blanc. Le robot ajuste sa direction en permanence.</p>
-
-    <h3>Principe du suivi de ligne</h3>
-    <ul>
-      <li><strong>2 capteurs IR</strong> sous le robot, de chaque côté de la ligne</li>
-      <li>Capteur sur BLANC → renvoie 1</li>
-      <li>Capteur sur NOIR → renvoie 0</li>
-    </ul>
-
-    <div class="example">
-      <strong>Les 4 situations :</strong><br>
-      Gauche=BLANC, Droite=BLANC → Avancer tout droit<br>
-      Gauche=NOIR, Droite=BLANC → Tourner à gauche<br>
-      Gauche=BLANC, Droite=NOIR → Tourner à droite<br>
-      Gauche=NOIR, Droite=NOIR → Stop (fin de ligne ou croisement)
-    </div>
-
-    <h3>Le code</h3>
-    <div class="example">
-      <code>int capteurG = digitalRead(A0);<br>
-      int capteurD = digitalRead(A1);<br><br>
-      if (capteurG == 1 && capteurD == 1) {<br>
-      &nbsp;&nbsp;avancer(150); // tout droit<br>
-      } else if (capteurG == 0 && capteurD == 1) {<br>
-      &nbsp;&nbsp;tournerGauche(120);<br>
-      } else if (capteurG == 1 && capteurD == 0) {<br>
-      &nbsp;&nbsp;tournerDroite(120);<br>
-      } else {<br>
-      &nbsp;&nbsp;stop();<br>
-      }</code>
-    </div>
-
-    <h3>Créer la piste</h3>
-    <p>Colle du ruban adhésif noir (scotch électricien) sur une grande feuille blanche ou un carton blanc. Fais des virages, des intersections !</p>
-
-    <div class="tip">
-      💡 <strong>C'est comme ça que marchent les robots dans les entrepôts Amazon !</strong> Ils suivent des lignes au sol.
-    </div>`,
-    '6ème', 3, 13,
-    JSON.stringify(['suivi ligne', 'capteur IR', 'autonome', 'phase4']),
+    <div class="tip">💡 <strong>C'est de l'IA basique !</strong> Percevoir → Décider → Agir. C'est le fondement de l'intelligence artificielle.</div>`,
+    '6ème', 3, 10,
+    JSON.stringify(['obstacle', 'autonome', 'capteurs', 'phase3']),
     null, null, 20
   ).lastInsertRowid;
 
-  insertExercise.run(courseId, 'techno', 'Capteur IR', 'qcm',
-    'Quand le capteur IR est sur du NOIR, il renvoie...',
-    JSON.stringify(['1 (blanc)', '0 (noir)', '100', 'Rien du tout']),
-    '0 (noir)',
-    'Le capteur IR renvoie 0 quand il détecte du noir (la lumière est absorbée) et 1 quand c\'est blanc.',
-    '6ème', 3, 15, JSON.stringify(['suivi ligne']), null);
+  insertExercise.run(courseId, 'techno', 'Seuil de détection', 'qcm',
+    "DISTANCE_MIN = 25 signifie que le robot réagit quand l'obstacle est à...",
+    JSON.stringify(["Plus de 25 cm", "Moins de 25 cm", "Exactement 25 cm", "25 mètres"]),
+    "Moins de 25 cm",
+    "Si la distance mesurée < 25 cm → obstacle trop proche → tourner !",
+    '6ème', 3, 15, JSON.stringify(['obstacle']), null);
 
-  insertExercise.run(courseId, 'techno', 'Tourner à gauche', 'qcm',
-    'Si le capteur gauche voit NOIR et le droit voit BLANC, le robot doit...',
-    JSON.stringify(['Avancer tout droit', 'Tourner à gauche', 'Tourner à droite', 'S\'arrêter']),
-    'Tourner à gauche',
-    'La ligne est partie à gauche ! Le capteur gauche la voit (noir) → le robot corrige à gauche.',
-    '6ème', 3, 15, JSON.stringify(['suivi ligne']), null);
-
-  // --- Module 14 : Le projet final - Robot intelligent ---
+  // --- Module 11 : Suivre une ligne ---
   courseId = insertCourse.run('techno',
-    'Projet final - Mon robot intelligent',
-    `<h3>L'assemblage complet</h3>
-    <p>Tu as maintenant toutes les pièces du puzzle. Ton robot va combiner :</p>
+    'Suivre une ligne - Robot qui trace',
+    `<h3>Principe du suivi de ligne</h3>
+    <p>3 capteurs IR (grayscale) sous le robot. Chacun renvoie une valeur :</p>
     <ul>
-      <li>Évitement d'obstacles (capteur ultrasonique)</li>
-      <li>Suivi de ligne (capteurs IR)</li>
-      <li>Choix intelligent du mode (bouton ou commande)</li>
+      <li>Valeur basse = sur la ligne noire</li>
+      <li>Valeur haute = sur le fond blanc</li>
     </ul>
 
-    <h3>Les modes du robot</h3>
     <div class="example">
-      <code>int mode = 1; // 1=évitement, 2=suivi ligne<br><br>
-      void loop() {<br>
-      &nbsp;&nbsp;if (boutonAppuye()) {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;mode = (mode == 1) ? 2 : 1; // change de mode<br>
-      &nbsp;&nbsp;}<br><br>
-      &nbsp;&nbsp;if (mode == 1) {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;modeEvitement();<br>
-      &nbsp;&nbsp;} else {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;modeSuiviLigne();<br>
-      &nbsp;&nbsp;}<br>
-      }</code>
+      <code>from picarx import Picarx<br>
+      import time<br><br>
+      px = Picarx()<br>
+      SEUIL = 500<br><br>
+      try:<br>
+      &nbsp;&nbsp;while True:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;g, c, d = px.grayscale.read()<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;if c < SEUIL:  # Centre sur la ligne<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.set_dir_servo_angle(0)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.forward(30)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;elif g < SEUIL:  # Ligne à gauche<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.set_dir_servo_angle(-20)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.forward(25)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;elif d < SEUIL:  # Ligne à droite<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.set_dir_servo_angle(20)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.forward(25)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;else:  # Ligne perdue<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;px.stop()<br><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;time.sleep(0.05)<br>
+      except KeyboardInterrupt:<br>
+      &nbsp;&nbsp;px.stop()</code>
     </div>
 
-    <h3>L'IA embarquée : aller plus loin</h3>
-    <p>Ton robot prend des décisions simples (if/else). Pour aller plus loin :</p>
+    <h3>Créer ta piste</h3>
+    <p>Scotch noir (électricien) sur carton blanc. Fais des virages, des croisements !</p>
+
+    <div class="tip">💡 C'est comme ça que fonctionnent les robots Amazon dans leurs entrepôts !</div>`,
+    '6ème', 3, 11,
+    JSON.stringify(['suivi ligne', 'capteur IR', 'autonome', 'phase3']),
+    null, null, 20
+  ).lastInsertRowid;
+
+  insertExercise.run(courseId, 'techno', "3 capteurs de ligne", 'qcm',
+    "Le PiCar-X a combien de capteurs de ligne ?",
+    JSON.stringify(["1", "2", "3", "4"]),
+    "3", "3 capteurs : gauche, centre, droite. Le centre détecte si on est bien aligné.",
+    '6ème', 3, 15, JSON.stringify(['suivi ligne']), null);
+
+  // ============================================================
+  // PHASE 4 : VISION & IA EMBARQUÉE (Semaines 13-16)
+  // ============================================================
+
+  // --- Module 12 : La caméra - Le robot qui voit ---
+  courseId = insertCourse.run('techno',
+    'La caméra - Le robot qui voit',
+    `<h3>La vision par ordinateur</h3>
+    <p>Grâce à la caméra Pi et la bibliothèque <strong>OpenCV</strong>, le robot peut :</p>
     <ul>
-      <li><strong>Apprentissage</strong> : le robot mémorise les virages qui fonctionnent</li>
-      <li><strong>Cartographie</strong> : il dessine une carte de son environnement</li>
-      <li><strong>Communication</strong> : ajouter du Bluetooth pour le contrôler depuis ton téléphone</li>
+      <li>Détecter des <strong>couleurs</strong> (suivre un objet rouge)</li>
+      <li>Reconnaître des <strong>visages</strong></li>
+      <li>Suivre un <strong>objet en mouvement</strong></li>
+      <li>Lire du <strong>texte</strong> (OCR)</li>
     </ul>
 
-    <h3>Évolution possible : le Bluetooth</h3>
-    <p>Avec un module <strong>HC-05</strong> (~5€), tu peux contrôler ton robot depuis une appli smartphone ! Tu envoies des commandes : "A" = avancer, "G" = gauche, etc.</p>
+    <h3>Installer OpenCV</h3>
+    <div class="example">
+      <code>sudo pip3 install opencv-python</code>
+    </div>
 
-    <h3>Ta liste de courses complète</h3>
-    <div class="shopping-list">
-      🛒 <strong>Kit complet recommandé :</strong><br>
-      <strong>ELEGOO Smart Robot Car Kit V4</strong> (~70€)<br>
-      Contient : Arduino UNO, driver moteur, 4 moteurs DC,<br>
-      capteur ultrasonique, capteurs IR, servo, télécommande IR,<br>
-      module Bluetooth, châssis, roues, piles, câbles<br><br>
-      🛒 <strong>OU en pièces détachées :</strong><br>
-      - Arduino UNO R3 compatible (~12€)<br>
-      - Châssis 2WD + moteurs + roues (~15€)<br>
-      - Driver L298N (~5€)<br>
-      - Capteur HC-SR04 (~3€)<br>
-      - 2 capteurs IR (~3€)<br>
-      - Servo SG90 (~3€)<br>
-      - Module Bluetooth HC-05 (~5€)<br>
-      - Breadboard + fils (~5€)<br>
-      - Pack piles 4xAA (~4€)<br>
-      <strong>Total : ~55€</strong>
+    <h3>Prendre une photo</h3>
+    <div class="example">
+      <code>import cv2<br><br>
+      cam = cv2.VideoCapture(0)<br>
+      ret, image = cam.read()<br>
+      cv2.imwrite("photo.jpg", image)<br>
+      cam.release()<br>
+      print("Photo prise !")</code>
+    </div>
+
+    <h3>Détecter une couleur (suivre un objet)</h3>
+    <div class="example">
+      <code>import cv2<br>
+      import numpy as np<br><br>
+      # Détecter du rouge dans l'image<br>
+      hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)<br>
+      masque = cv2.inRange(hsv, (0, 120, 70), (10, 255, 255))<br>
+      contours, _ = cv2.findContours(masque, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)<br><br>
+      if len(contours) > 0:<br>
+      &nbsp;&nbsp;plus_gros = max(contours, key=cv2.contourArea)<br>
+      &nbsp;&nbsp;x, y, w, h = cv2.boundingRect(plus_gros)<br>
+      &nbsp;&nbsp;print(f"Objet rouge à x={x}, y={y}")</code>
     </div>
 
     <div class="tip">
-      💡 <strong>Bravo ! Tu as construit un VRAI robot !</strong> Tu maîtrises maintenant la programmation, l'électronique ET la mécanique. C'est exactement ce que font les ingénieurs en robotique. La prochaine étape ? Ajouter une caméra et de l'IA avec un Raspberry Pi !
+      💡 <strong>C'est comme ça que marchent les voitures autonomes Tesla !</strong> Elles "voient" la route avec des caméras et de l'IA.
     </div>`,
-    '6ème', 3, 14,
-    JSON.stringify(['projet final', 'robot complet', 'IA', 'phase4']),
-    null,
-    'https://www.youtube.com/watch?v=1WrsMAiR8jY',
-    30
+    '6ème', 3, 12,
+    JSON.stringify(['caméra', 'vision', 'opencv', 'phase4']),
+    null, 'https://www.youtube.com/watch?v=oXlwWbU8l2o', 20
   ).lastInsertRowid;
 
-  insertExercise.run(courseId, 'techno', 'Les composants du robot', 'qcm',
-    'Quels composants sont nécessaires pour un robot qui évite les obstacles ?',
-    JSON.stringify([
-      'Arduino + moteurs + capteur de distance',
-      'Juste un Arduino',
-      'Un ordinateur portable',
-      'Un téléphone'
-    ]),
-    'Arduino + moteurs + capteur de distance',
-    'Il faut un cerveau (Arduino), des jambes (moteurs) et des yeux (capteur de distance) !',
-    '6ème', 3, 20, JSON.stringify(['projet final']), null);
+  insertExercise.run(courseId, 'techno', "OpenCV c'est quoi ?", 'qcm',
+    "OpenCV sert à...",
+    JSON.stringify(["Faire de la musique", "Traiter des images et vidéos par ordinateur", "Écrire du texte", "Jouer à des jeux"]),
+    "Traiter des images et vidéos par ordinateur",
+    "OpenCV = Open Computer Vision. La bibliothèque #1 pour la vision par ordinateur.",
+    '6ème', 3, 20, JSON.stringify(['caméra']), null);
 
-  insertExercise.run(courseId, 'techno', 'IA embarquée', 'qcm',
-    'Quand le robot décide seul de tourner en voyant un obstacle, c\'est...',
-    JSON.stringify(['De la magie', 'De l\'intelligence artificielle basique', 'Du hasard', 'Impossible']),
-    'De l\'intelligence artificielle basique',
-    'Le robot perçoit (capteur), décide (algorithme), agit (moteur). C\'est la base de l\'IA !',
-    '6ème', 3, 20, JSON.stringify(['projet final', 'IA']), null);
+  insertExercise.run(courseId, 'techno', "Détecter une couleur", 'qcm',
+    "Pour détecter du rouge dans une image, on utilise...",
+    JSON.stringify(["print()", "cv2.inRange() avec les bornes de couleur", "px.forward()", "random()"]),
+    "cv2.inRange() avec les bornes de couleur",
+    "inRange filtre les pixels dont la couleur est dans la plage définie (ici : rouge).",
+    '6ème', 3, 20, JSON.stringify(['caméra']), null);
 
-  insertExercise.run(courseId, 'techno', 'Résumé du parcours', 'truefalse',
-    'Pour construire un robot, il faut maîtriser la programmation, l\'électronique ET la mécanique. Vrai ou faux ?',
+  // --- Module 13 : IA embarquée - Le robot intelligent ---
+  courseId = insertCourse.run('techno',
+    "IA embarquée - Le robot qui apprend",
+    `<h3>C'est quoi l'IA ?</h3>
+    <p>L'<strong>Intelligence Artificielle</strong>, c'est quand un programme prend des décisions "intelligentes" :</p>
+    <ul>
+      <li><strong>Niveau 1</strong> : Règles simples (if/else) → ce que tu fais déjà !</li>
+      <li><strong>Niveau 2</strong> : Reconnaissance de formes (OpenCV) → tu viens de l'apprendre</li>
+      <li><strong>Niveau 3</strong> : Apprentissage automatique (Machine Learning) → le robot apprend tout seul</li>
+    </ul>
+
+    <h3>TensorFlow Lite sur le Raspberry Pi</h3>
+    <p>On peut faire tourner des <strong>modèles d'IA</strong> directement sur le Pi ! Exemples :</p>
+    <ul>
+      <li>Reconnaissance d'objets : "C'est une tasse, une chaussure, un chat..."</li>
+      <li>Détection de visages : "Il y a 2 personnes devant moi"</li>
+      <li>Classification d'images : "C'est un panneau stop"</li>
+    </ul>
+
+    <div class="example">
+      <code>sudo pip3 install tflite-runtime<br><br>
+      # Exemple : détecter des objets<br>
+      import tflite_runtime.interpreter as tflite<br><br>
+      interpreter = tflite.Interpreter("detect.tflite")<br>
+      interpreter.allocate_tensors()<br>
+      # ... prendre photo, la passer au modèle<br>
+      # Le modèle dit : "Je vois une personne à 73% de confiance"</code>
+    </div>
+
+    <h3>L'IA de ton robot au quotidien</h3>
+    <p>Combine tout ce que tu as appris :</p>
+    <div class="example">
+      <code>while True:<br>
+      &nbsp;&nbsp;image = prendre_photo()<br>
+      &nbsp;&nbsp;objets = detecter_objets(image)<br>
+      &nbsp;&nbsp;distance = px.ultrasonic.read()<br><br>
+      &nbsp;&nbsp;if "personne" in objets:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;suivre_personne(objets["personne"])<br>
+      &nbsp;&nbsp;elif distance < 25:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;eviter_obstacle()<br>
+      &nbsp;&nbsp;else:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;explorer()</code>
+    </div>
+
+    <div class="tip">
+      💡 <strong>C'est EXACTEMENT ce que fait Homework Buddy !</strong> L'IA qui t'aide avec tes devoirs (Claude) fonctionne sur le même principe : elle perçoit ta question, analyse, et génère une réponse. Ton robot fait pareil, mais avec des capteurs et des moteurs.
+    </div>`,
+    '6ème', 3, 13,
+    JSON.stringify(['IA', 'machine learning', 'tensorflow', 'phase4']),
+    null, 'https://www.youtube.com/watch?v=2kO8ScrqikM', 20
+  ).lastInsertRowid;
+
+  insertExercise.run(courseId, 'techno', "Les 3 niveaux d'IA", 'qcm',
+    "Quel est le niveau 3 de l'IA ?",
+    JSON.stringify(["Règles if/else", "Reconnaissance de formes", "Apprentissage automatique (Machine Learning)", "Magie"]),
+    "Apprentissage automatique (Machine Learning)",
+    "Niveau 3 = le programme apprend tout seul à partir d'exemples. C'est le Machine Learning !",
+    '6ème', 3, 20, JSON.stringify(['IA']), null);
+
+  insertExercise.run(courseId, 'techno', "TensorFlow Lite", 'qcm',
+    "TensorFlow Lite permet au Raspberry Pi de...",
+    JSON.stringify(["Jouer à des jeux", "Faire tourner des modèles d'IA", "Se connecter au WiFi", "Imprimer"]),
+    "Faire tourner des modèles d'IA",
+    "TF Lite = version légère de TensorFlow qui tourne sur le Pi. Reconnaissance d'objets, visages, etc.",
+    '6ème', 3, 20, JSON.stringify(['IA']), null);
+
+  // --- Module 14 : Projet final - Robot contrôlé par smartphone ---
+  courseId = insertCourse.run('techno',
+    'Projet final - Robot contrôlé par smartphone',
+    `<h3>Le serveur web embarqué</h3>
+    <p>Grâce au WiFi du Raspberry Pi, tu peux créer un <strong>serveur web</strong> sur le robot et le contrôler depuis n'importe quel navigateur sur ton téléphone !</p>
+
+    <div class="example">
+      <code>from flask import Flask, render_template, jsonify<br>
+      from picarx import Picarx<br><br>
+      app = Flask(__name__)<br>
+      px = Picarx()<br><br>
+      @app.route('/')<br>
+      def index():<br>
+      &nbsp;&nbsp;return render_template('telecommande.html')<br><br>
+      @app.route('/avancer')<br>
+      def avancer():<br>
+      &nbsp;&nbsp;px.forward(40)<br>
+      &nbsp;&nbsp;return jsonify({"status": "ok"})<br><br>
+      @app.route('/stop')<br>
+      def stop():<br>
+      &nbsp;&nbsp;px.stop()<br>
+      &nbsp;&nbsp;return jsonify({"status": "ok"})<br><br>
+      @app.route('/gauche')<br>
+      def gauche():<br>
+      &nbsp;&nbsp;px.set_dir_servo_angle(-30)<br>
+      &nbsp;&nbsp;return jsonify({"status": "ok"})<br><br>
+      app.run(host='0.0.0.0', port=8080)</code>
+    </div>
+
+    <p>Ouvre <strong>http://[ip-du-robot]:8080</strong> sur ton téléphone et tu as une télécommande web !</p>
+
+    <h3>Ton robot sait maintenant :</h3>
+    <ul>
+      <li>✅ Avancer, reculer, tourner</li>
+      <li>✅ Éviter les obstacles</li>
+      <li>✅ Suivre une ligne</li>
+      <li>✅ Voir avec une caméra</li>
+      <li>✅ Reconnaître des objets avec l'IA</li>
+      <li>✅ Être contrôlé depuis un smartphone</li>
+    </ul>
+
+    <h3>Et après ?</h3>
+    <ul>
+      <li><strong>Commande vocale</strong> : ajouter un micro et de la reconnaissance vocale</li>
+      <li><strong>Cartographie SLAM</strong> : le robot dessine la carte de ta maison</li>
+      <li><strong>ROS2</strong> : le framework professionnel de robotique (utilisé par les vrais robots industriels)</li>
+      <li><strong>Bras robotique</strong> : ajouter une pince pour attraper des objets</li>
+    </ul>
+
+    <div class="shopping-list">
+      🛒 <strong>Liste de courses complète du parcours :</strong><br><br>
+      <strong>Le cerveau :</strong><br>
+      - Raspberry Pi 4 Model B (4 Go) ~55€<br>
+      - Alimentation USB-C 5V/3A ~10€<br>
+      - Carte micro-SD 32 Go ~8€<br>
+      - Câble micro-HDMI (setup) ~8€<br><br>
+      <strong>Le corps :</strong><br>
+      - SunFounder PiCar-X Kit ~80€<br>
+      - Caméra Pi v2 ~25€<br>
+      - 2 piles 18650 + chargeur ~15€<br><br>
+      <strong>TOTAL : environ 170-200€</strong><br><br>
+      <strong>Bonus optionnel :</strong><br>
+      - Micro USB pour commande vocale ~8€<br>
+      - Bras robotique servo ~20€
+    </div>
+
+    <div class="tip">
+      💡 <strong>BRAVO !</strong> Tu maîtrises maintenant : Python, Linux, l'électronique, la mécanique, la vision par ordinateur, l'IA embarquée et le développement web. C'est le profil d'un VRAI ingénieur en robotique !
+    </div>`,
+    '6ème', 3, 14,
+    JSON.stringify(['projet final', 'serveur web', 'smartphone', 'flask', 'phase4']),
+    null, null, 30
+  ).lastInsertRowid;
+
+  insertExercise.run(courseId, 'techno', 'Serveur web', 'qcm',
+    "Flask permet de...",
+    JSON.stringify(["Faire de la musique", "Créer un serveur web en Python", "Dessiner", "Jouer"]),
+    "Créer un serveur web en Python",
+    "Flask = mini-framework web Python. Le robot devient un serveur web accessible depuis le téléphone !",
+    '6ème', 3, 20, JSON.stringify(['flask']), null);
+
+  insertExercise.run(courseId, 'techno', 'Compétences acquises', 'truefalse',
+    "Après ce parcours, tu sais programmer en Python, utiliser Linux, câbler des capteurs, et faire de l'IA. Vrai ou faux ?",
     JSON.stringify(['Vrai', 'Faux']),
     'Vrai',
-    'VRAI ! La robotique combine 3 disciplines : programmer le cerveau, câbler les capteurs/moteurs, construire le corps. Et toi, tu sais faire les 3 !',
+    "VRAI ! Python + Linux + électronique + mécanique + vision + IA + web = ingénieur robotique !",
     '6ème', 3, 20, JSON.stringify(['projet final']), null);
 
-  // Ajouter les stats techno pour Sacha (user_id = 2)
-  const sachaStats = db.prepare("SELECT COUNT(*) as count FROM user_stats WHERE user_id = 2 AND subject = 'techno'").get();
-  if (sachaStats.count === 0) {
-    db.prepare("INSERT INTO user_stats (user_id, subject) VALUES (2, 'techno')").run();
-  }
-  // Ajouter aussi pour les autres enfants au cas où
+  // Ajouter les stats techno pour tous les enfants
   for (let userId = 1; userId <= 3; userId++) {
     const st = db.prepare("SELECT COUNT(*) as count FROM user_stats WHERE user_id = ? AND subject = 'techno'").get(userId);
     if (st.count === 0) {
@@ -1078,7 +900,7 @@ function seedRobotics(db) {
     }
   }
 
-  console.log('🤖 Parcours Robotique & Programmation chargé !');
+  console.log('🤖 Parcours Robotique PiCar-X + Raspberry Pi 4 chargé !');
 }
 
 module.exports = { seedRobotics };
