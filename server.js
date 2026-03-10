@@ -54,6 +54,7 @@ app.use('/api/learning', require('./routes/learning'));
 app.use('/api/program', require('./routes/program'));
 app.use('/api/daily-tips', require('./routes/daily-tips'));
 app.use('/api/generate', require('./routes/generate'));
+app.use('/api/tts', require('./routes/tts'));
 
 // SPA fallback
 app.get('*', (req, res) => {

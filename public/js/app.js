@@ -2489,7 +2489,7 @@ function toggleAudioPlay() {
     pauseTTS();
     speechPlaying = false;
     document.getElementById('audio-play-btn').textContent = '▶️ Reprendre';
-  } else if (ttsChunks.length > 0 && ttsCurrentChunk < ttsChunks.length) {
+  } else if (ttsSegments.length > 0) {
     // Reprendre là où on en était
     resumeTTS();
     speechPlaying = true;
@@ -2503,17 +2503,14 @@ function toggleAudioPlay() {
 
 function startSpeech() {
   if (!currentAudioLesson) return;
-  if (!('speechSynthesis' in window)) {
-    alert('La synthèse vocale n\'est pas disponible sur ce navigateur.');
-    return;
-  }
 
   const text = currentAudioLesson.content_text || '';
   const isEnglish = currentAudioLesson.title && currentAudioLesson.title.match(/english|anglais|business/i);
   const lang = isEnglish ? 'en' : 'fr';
 
-  // Utiliser le moteur TTS amélioré avec chunks pour permettre avance/recul
+  // Utiliser le moteur Google TTS serveur (voix natives)
   ttsRate = audioSpeed;
+  setTTSRate(audioSpeed);
   speakText(text, lang);
   speechPlaying = true;
 }
@@ -2525,30 +2522,21 @@ function stopSpeech() {
 
 function audioRewind() {
   ttsRewind();
-  if (!speechPlaying) {
-    speechPlaying = true;
-    document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
-  }
+  speechPlaying = true;
+  document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
 }
 
 function audioForward() {
   ttsForward();
-  if (!speechPlaying) {
-    speechPlaying = true;
-    document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
-  }
+  speechPlaying = true;
+  document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
 }
 
 function setAudioSpeed(rate, btn) {
   audioSpeed = rate;
   document.querySelectorAll('.audio-speed-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-
-  // Appliquer la nouvelle vitesse au TTS
   setTTSRate(rate);
-  if (speechPlaying) {
-    document.getElementById('audio-play-btn').textContent = '⏸️ Pause';
-  }
 }
 
 function toggleAudioText() {
@@ -2658,222 +2646,177 @@ function startProgramBlock(index, type, subject) {
 }
 
 // ==================
-// TEXT-TO-SPEECH (TTS) - Compatible smartphone
-// Découpage en chunks pour permettre avance/recul
-// Voix anglophone NATIVE pour l'anglais
+// TEXT-TO-SPEECH (TTS) - Moteur Google TTS côté serveur
+// Voix anglaise NATIVE Google, lecteur HTML5 <audio>
+// Seek, pause/resume, fonctionne écran verrouillé
 // ==================
-let ttsUtterance = null;
+let ttsAudio = null;
+let ttsSegments = [];
+let ttsCurrentSegment = 0;
 let ttsPlaying = false;
-let ttsChunks = [];
-let ttsCurrentChunk = 0;
+let ttsRate = 1;
 let ttsCurrentLang = 'fr';
-let ttsRate = 0.9;
-let ttsVoicesLoaded = false;
 
 function initTTS() {
-  if (!('speechSynthesis' in window)) return;
+  // Créer l'élément audio global (invisible)
+  ttsAudio = new Audio();
+  ttsAudio.preload = 'auto';
 
-  // Charger les voix (asynchrone sur certains navigateurs)
-  const loadVoices = () => {
-    const voices = speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      ttsVoicesLoaded = true;
-      console.log('TTS: ' + voices.length + ' voix disponibles');
-      // Logger les voix anglaises disponibles pour debug
-      const enVoices = voices.filter(v => v.lang.startsWith('en'));
-      console.log('TTS voix anglaises:', enVoices.map(v => v.name + ' (' + v.lang + ')').join(', '));
-    }
-  };
-
-  loadVoices();
-  speechSynthesis.onvoiceschanged = loadVoices;
-
-  // Workaround mobile : relancer la synthèse si interrompue par le verrouillage écran
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && ttsPlaying) {
-      // L'écran revient : reprendre la lecture si elle a été coupée
-      if (speechSynthesis.paused) {
-        speechSynthesis.resume();
-      } else if (!speechSynthesis.speaking && ttsCurrentChunk < ttsChunks.length) {
-        // La synthèse a été coupée silencieusement, relancer le chunk courant
-        speakCurrentChunk();
-      }
+  ttsAudio.addEventListener('ended', () => {
+    // Passer au segment suivant
+    ttsCurrentSegment++;
+    if (ttsCurrentSegment < ttsSegments.length) {
+      playCurrentSegment();
+    } else {
+      ttsPlaying = false;
+      updateTTSButton('done');
     }
   });
 
-  // Workaround Chrome : le navigateur coupe après ~15s de synthèse
-  // On découpe le texte en phrases pour éviter ce bug
-  setInterval(() => {
-    if (ttsPlaying && speechSynthesis.speaking) {
-      speechSynthesis.pause();
-      speechSynthesis.resume();
-    }
-  }, 10000);
-}
-
-function getVoiceForLang(lang) {
-  const voices = speechSynthesis.getVoices();
-  if (lang === 'en') {
-    // Priorité : voix anglaise NATIVE (pas une voix française qui parle anglais)
-    // 1. Chercher une voix premium/naturelle en-GB ou en-US
-    const premium = voices.find(v =>
-      v.lang.startsWith('en') &&
-      !v.lang.includes('IN') && // pas indien
-      (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Daniel') ||
-       v.name.includes('Karen') || v.name.includes('Moira') || v.name.includes('Alex') ||
-       v.name.includes('Rishi') || v.name.includes('Fiona') || v.name.includes('Veena'))
-    );
-    if (premium) return premium;
-
-    // 2. Voix en-GB ou en-US non-locale (souvent meilleure qualité)
-    const remote = voices.find(v => (v.lang === 'en-GB' || v.lang === 'en-US') && !v.localService);
-    if (remote) return remote;
-
-    // 3. N'importe quelle voix en-GB
-    const enGB = voices.find(v => v.lang === 'en-GB');
-    if (enGB) return enGB;
-
-    // 4. N'importe quelle voix en-US
-    const enUS = voices.find(v => v.lang === 'en-US');
-    if (enUS) return enUS;
-
-    // 5. N'importe quelle voix anglaise (sauf voix françaises qui s'appellent "English")
-    const anyEn = voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('french'));
-    if (anyEn) return anyEn;
-
-    // 6. Fallback absolu
-    return voices.find(v => v.lang.startsWith('en')) || null;
-  }
-
-  // Français : chercher une voix française native
-  const frPremium = voices.find(v => v.lang === 'fr-FR' &&
-    (v.name.includes('Google') || v.name.includes('Thomas') || v.name.includes('Amelie') || v.name.includes('Audrey'))
-  );
-  if (frPremium) return frPremium;
-
-  return voices.find(v => v.lang === 'fr-FR')
-    || voices.find(v => v.lang.startsWith('fr'))
-    || null;
-}
-
-// Découper le texte en phrases pour permettre la navigation
-function splitTextIntoChunks(text) {
-  // Découper par phrases (. ! ? ou retour à la ligne)
-  const raw = text.split(/(?<=[.!?])\s+|\n+/).filter(s => s.trim().length > 3);
-  // Regrouper les phrases courtes en chunks de ~100-200 caractères
-  const chunks = [];
-  let current = '';
-  for (const sentence of raw) {
-    if (current.length + sentence.length > 200 && current.length > 0) {
-      chunks.push(current.trim());
-      current = sentence;
+  ttsAudio.addEventListener('error', (e) => {
+    console.error('TTS audio error:', e);
+    // Essayer le segment suivant
+    ttsCurrentSegment++;
+    if (ttsCurrentSegment < ttsSegments.length) {
+      playCurrentSegment();
     } else {
-      current += (current ? ' ' : '') + sentence;
+      ttsPlaying = false;
     }
+  });
+
+  // Media Session API : permet de contrôler depuis l'écran de verrouillage
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => resumeTTS());
+    navigator.mediaSession.setActionHandler('pause', () => pauseTTS());
+    navigator.mediaSession.setActionHandler('previoustrack', () => ttsRewind());
+    navigator.mediaSession.setActionHandler('nexttrack', () => ttsForward());
   }
-  if (current.trim()) chunks.push(current.trim());
-  return chunks.length > 0 ? chunks : [text];
 }
 
-function speakText(text, lang) {
-  if (!('speechSynthesis' in window)) return;
+async function speakText(text, lang) {
   stopTTS();
 
   ttsCurrentLang = lang || 'fr';
-  ttsChunks = splitTextIntoChunks(text);
-  ttsCurrentChunk = 0;
-  ttsPlaying = true;
+  ttsCurrentSegment = 0;
 
-  speakCurrentChunk();
+  try {
+    const res = await fetch('/api/tts/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, lang: ttsCurrentLang })
+    });
+
+    if (!res.ok) throw new Error('TTS API error');
+
+    const data = await res.json();
+    ttsSegments = data.segments || [];
+
+    if (ttsSegments.length === 0) {
+      console.warn('TTS: aucun segment audio généré');
+      return;
+    }
+
+    ttsPlaying = true;
+    updateTTSButton('playing');
+
+    // Configurer Media Session pour l'écran de verrouillage
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: lang === 'en' ? 'English Lesson' : 'Cours',
+        artist: 'Homework Buddy',
+        album: lang === 'en' ? 'English' : 'Français'
+      });
+    }
+
+    playCurrentSegment();
+  } catch (err) {
+    console.error('TTS error:', err);
+    ttsPlaying = false;
+  }
 }
 
-function speakCurrentChunk() {
-  if (ttsCurrentChunk >= ttsChunks.length) {
+function playCurrentSegment() {
+  if (ttsCurrentSegment >= ttsSegments.length) {
     ttsPlaying = false;
-    // Mettre à jour le bouton s'il existe
-    const btn = document.getElementById('tts-course-btn');
-    if (btn) btn.innerHTML = '🔊 Réécouter le cours';
+    updateTTSButton('done');
     return;
   }
 
-  speechSynthesis.cancel();
-
-  ttsUtterance = new SpeechSynthesisUtterance(ttsChunks[ttsCurrentChunk]);
-  const voice = getVoiceForLang(ttsCurrentLang);
-  if (voice) {
-    ttsUtterance.voice = voice;
-    console.log('TTS voix utilisée:', voice.name, voice.lang);
-  }
-  ttsUtterance.lang = ttsCurrentLang === 'en' ? 'en-GB' : 'fr-FR';
-  ttsUtterance.rate = ttsRate;
-  ttsUtterance.pitch = 1;
-
-  ttsUtterance.onend = () => {
-    if (ttsPlaying) {
-      ttsCurrentChunk++;
-      speakCurrentChunk();
-    }
-  };
-
-  ttsUtterance.onerror = (e) => {
-    if (e.error !== 'canceled' && e.error !== 'interrupted') {
-      console.error('TTS error:', e.error);
-      ttsPlaying = false;
-    }
-  };
-
-  speechSynthesis.speak(ttsUtterance);
+  const segment = ttsSegments[ttsCurrentSegment];
+  ttsAudio.src = segment.url;
+  ttsAudio.playbackRate = ttsRate;
+  ttsAudio.play().catch(e => {
+    console.error('Audio play error:', e);
+  });
 }
 
 function stopTTS() {
-  if ('speechSynthesis' in window) {
-    speechSynthesis.cancel();
+  if (ttsAudio) {
+    ttsAudio.pause();
+    ttsAudio.src = '';
   }
   ttsPlaying = false;
-  ttsChunks = [];
-  ttsCurrentChunk = 0;
+  ttsSegments = [];
+  ttsCurrentSegment = 0;
 }
 
 function pauseTTS() {
-  if ('speechSynthesis' in window && speechSynthesis.speaking) {
-    speechSynthesis.pause();
+  if (ttsAudio && !ttsAudio.paused) {
+    ttsAudio.pause();
     ttsPlaying = false;
+    updateTTSButton('paused');
   }
 }
 
 function resumeTTS() {
-  if ('speechSynthesis' in window && speechSynthesis.paused) {
-    speechSynthesis.resume();
+  if (ttsAudio && ttsAudio.src && ttsAudio.paused) {
+    ttsAudio.play().catch(() => {});
     ttsPlaying = true;
-  } else if (ttsChunks.length > 0 && ttsCurrentChunk < ttsChunks.length) {
+    updateTTSButton('playing');
+  } else if (ttsSegments.length > 0 && ttsCurrentSegment < ttsSegments.length) {
     ttsPlaying = true;
-    speakCurrentChunk();
+    playCurrentSegment();
+    updateTTSButton('playing');
   }
 }
 
-// Avancer de ~15 secondes (environ 2-3 chunks)
+// Avancer : passer au segment suivant
 function ttsForward() {
-  if (ttsChunks.length === 0) return;
-  speechSynthesis.cancel();
-  ttsCurrentChunk = Math.min(ttsCurrentChunk + 3, ttsChunks.length - 1);
-  if (ttsPlaying) speakCurrentChunk();
+  if (ttsSegments.length === 0) return;
+  ttsAudio.pause();
+  ttsCurrentSegment = Math.min(ttsCurrentSegment + 1, ttsSegments.length - 1);
+  ttsPlaying = true;
+  playCurrentSegment();
+  updateTTSButton('playing');
 }
 
-// Reculer de ~15 secondes
+// Reculer : revenir au segment précédent
 function ttsRewind() {
-  if (ttsChunks.length === 0) return;
-  speechSynthesis.cancel();
-  ttsCurrentChunk = Math.max(ttsCurrentChunk - 3, 0);
-  if (ttsPlaying) speakCurrentChunk();
+  if (ttsSegments.length === 0) return;
+  // Si on est au début du segment, reculer d'un segment
+  if (ttsAudio.currentTime < 2 && ttsCurrentSegment > 0) {
+    ttsCurrentSegment--;
+  }
+  ttsAudio.pause();
+  ttsPlaying = true;
+  playCurrentSegment();
+  updateTTSButton('playing');
 }
 
-// Changer la vitesse
 function setTTSRate(rate) {
   ttsRate = rate;
-  if (ttsPlaying) {
-    speechSynthesis.cancel();
-    speakCurrentChunk();
+  if (ttsAudio) {
+    ttsAudio.playbackRate = rate;
   }
+}
+
+function updateTTSButton(state) {
+  const btn = document.getElementById('tts-course-btn');
+  if (!btn) return;
+  if (state === 'playing') btn.innerHTML = '⏸️ Pause';
+  else if (state === 'paused') btn.innerHTML = '▶️ Reprendre';
+  else if (state === 'done') btn.innerHTML = '🔊 Réécouter';
+  else btn.innerHTML = '🔊 Écouter';
 }
 
 function speakCourseContent(subject) {
