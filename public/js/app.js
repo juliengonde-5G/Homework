@@ -666,6 +666,11 @@ function toggleFloatingChat() {
 // NAVIGATION
 // ==================
 function showSection(sectionId) {
+  // Arrêter le TTS en cours quand on change de section
+  if (typeof stopTTS === 'function') stopTTS();
+  const ttsControls = document.getElementById('tts-course-controls');
+  if (ttsControls) ttsControls.remove();
+
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('section-' + sectionId).classList.add('active');
 
@@ -753,6 +758,11 @@ function selectSubject(subject) {
 }
 
 function learnGoBack() {
+  // Arrêter le TTS et supprimer les contrôles audio
+  if (typeof stopTTS === 'function') stopTTS();
+  const ttsControls = document.getElementById('tts-course-controls');
+  if (ttsControls) ttsControls.remove();
+
   if (learnStep === 'lesson') {
     learnStep = 'list';
     document.getElementById('learn-course-detail').classList.add('hidden');
@@ -880,7 +890,7 @@ function showExercise() {
   document.getElementById('exercise-progress-fill').style.width = progress + '%';
   document.getElementById('exercise-container').classList.remove('hidden');
   document.getElementById('exercise-result').classList.add('hidden');
-  document.getElementById('exercise-complete').classList.add('hidden');
+  document.getElementById('learn-complete').classList.add('hidden');
 
   const typeLabels = {
     qcm: 'QCM', fill: 'Complète', truefalse: 'Vrai ou Faux', open: 'Réponse libre'
